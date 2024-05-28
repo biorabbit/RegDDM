@@ -14,7 +14,8 @@ MCMC!
 You can install latest version of RegDDM using Github:
 
 ``` r
-remote::install_github("biorabbit/RegDDM")
+remotes::install_github("DominiqueMakowski/easyRT")
+remotes::install_github("biorabbit/RegDDM")
 ```
 
 ## Example
@@ -68,20 +69,11 @@ fit = regddm(
   cores = 4,
   thin = 1,
 )
-#> Warning in check_data(data1, data2): variables are not scaled, which may
-#> influence model convergence.
-#> Warning: There were 51 divergent transitions after warmup. See
-#> https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-#> to find out why this is a problem and how to eliminate them.
-#> Warning: Examine the pairs() plot to diagnose sampling problems
-#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-#> Running the chains for more iterations may help. See
-#> https://mc-stan.org/misc/warnings.html#bulk-ess
-#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-#> Running the chains for more iterations may help. See
-#> https://mc-stan.org/misc/warnings.html#tail-ess
 
 round(rstan::summary(fit)$summary, 3)[1:6, c(1,3,4,8,9,10)]
+```
+
+``` r
 #>             mean    sd   2.5%  97.5%   n_eff  Rhat
 #> beta_0    -0.073 0.794 -2.219  1.178 157.223 1.015
 #> beta_v_x1  0.980 0.538  0.174  2.321 178.711 1.016
