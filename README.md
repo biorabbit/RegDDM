@@ -14,8 +14,7 @@ MCMC!
 You can install latest version of RegDDM using Github:
 
 ``` r
-remotes::install_github("DominiqueMakowski/easyRT")
-remotes::install_github("biorabbit/RegDDM")
+remote::install_github("biorabbit/RegDDM")
 ```
 
 ## Example
@@ -45,11 +44,8 @@ and `x2`, as well as two covariates `c1` and `c2`:
 
 ``` r
 model = list(
-  a = c(),
-  z = c(),
-  t = c(),
-  v = c("x1", "x2"),
-  y = c("v_x1", "v_x2", "c1", "c2")
+  v ~ x1 + x2,
+  y ~ v_x1 + v_x2 + c1 + c2
 )
 ```
 
@@ -63,24 +59,71 @@ fit = regddm(
   data1,
   data2,
   model = model,
-  warmup = 300,
-  iter = 500,
-  chains = 4,
-  cores = 4,
-  thin = 1,
+  family = "gaussian",
+  scale = FALSE,
+  warmup = 500,
+  iter = 700
 )
+#> Warning in check_data(data1, data2): variabley are not scaled, which may influence model convergence and validity of priors.
+#> Warning in mean.default(data1, na.rm = TRUE): 参数不是数值也不是逻辑值：回覆NA
+#> Warning in sqrt(var(data1, na.rm = TRUE) * n_obs/(n_obs - 1)): 产生了NaNs
+#> Warning in mean.default(data1, na.rm = TRUE): 参数不是数值也不是逻辑值：回覆NA
+#> Warning in sqrt(var(data1, na.rm = TRUE) * n_obs/(n_obs - 1)): 产生了NaNs
+#> Warning: There were 105 divergent transitions after warmup. See
+#> https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
+#> to find out why this is a problem and how to eliminate them.
+#> Warning: There were 244 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
+#> https://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
+#> Warning: There were 2 chains where the estimated Bayesian Fraction of Missing Information was low. See
+#> https://mc-stan.org/misc/warnings.html#bfmi-low
+#> Warning: Examine the pairs() plot to diagnose sampling problems
+#> Warning: The largest R-hat is 1.28, indicating chains have not mixed.
+#> Running the chains for more iterations may help. See
+#> https://mc-stan.org/misc/warnings.html#r-hat
+#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+#> Running the chains for more iterations may help. See
+#> https://mc-stan.org/misc/warnings.html#bulk-ess
+#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+#> Running the chains for more iterations may help. See
+#> https://mc-stan.org/misc/warnings.html#tail-ess
 
 round(rstan::summary(fit)$summary, 3)[1:6, c(1,3,4,8,9,10)]
+#>              mean     sd    2.5%  97.5%   n_eff  Rhat
+#> beta_0     -4.088 12.665 -41.660 11.741  15.429 1.258
+#> beta_v_x1   1.176  4.331  -5.293  8.173  58.682 1.071
+#> beta_v_x2 -11.086 30.951 -88.337 23.608  14.268 1.277
+#> beta_c1    -1.089  0.256  -1.583 -0.536 297.927 1.009
+#> beta_c2    -0.025  0.227  -0.477  0.393 325.549 1.008
+#> sigma_y     0.258  0.192   0.038  0.708  43.071 1.077
 ```
 
+Comparing with a liner model using the true sensitivity:
+
 ``` r
-#>             mean    sd   2.5%  97.5%   n_eff  Rhat
-#> beta_0    -0.073 0.794 -2.219  1.178 157.223 1.015
-#> beta_v_x1  0.980 0.538  0.174  2.321 178.711 1.016
-#> beta_v_x2 -0.354 0.842 -2.687  1.143 170.865 1.011
-#> beta_c1   -1.083 0.122 -1.329 -0.843 362.126 1.003
-#> beta_c2   -0.046 0.112 -0.272  0.180 599.815 0.999
-#> sigma_y    0.228 0.154  0.065  0.613 194.202 1.008
+summary(lm(y ~ v_x1 + v_x2 + c1 + c2, data = fake_data[["data1_true"]]))
+#> 
+#> Call:
+#> lm(formula = y ~ v_x1 + v_x2 + c1 + c2, data = fake_data[["data1_true"]])
+#> 
+#> Residuals:
+#>         1         2         3         4         5         6         7         8 
+#> -0.027036 -0.016014 -0.034147 -0.045841  0.175341 -0.016902 -0.009869  0.064586 
+#>         9        10 
+#> -0.064369 -0.025750 
+#> 
+#> Coefficients:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  0.15982    0.17400   0.919  0.40050    
+#> v_x1         1.01694    0.12963   7.845  0.00054 ***
+#> v_x2        -0.08156    0.17197  -0.474  0.65529    
+#> c1          -0.93483    0.05729 -16.317 1.58e-05 ***
+#> c2           0.02271    0.04611   0.493  0.64319    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 0.09419 on 5 degrees of freedom
+#> Multiple R-squared:  0.9927, Adjusted R-squared:  0.9869 
+#> F-statistic: 170.2 on 4 and 5 DF,  p-value: 1.581e-05
 ```
 
 # Using your own data!
@@ -104,8 +147,26 @@ numbers on the screen. We assume that subjects’ behavior changes
 according to these variables.
 
 `model` is the proposed dependency between these parameters. It must be
-a list containing 5 items `a`, `t`, `z`, `v`, `y`. Each item is another
-list containing the dependency. \* `a`, `t`, `z`, `v`: can only contain
-names of trial-level variables in `data2`. \* `y`: can only contain
-names of covariates in `data1` or parameters specified before in the
-format of `a/t/z/v`\_`trial_level_variables`
+a list containing several formulas, such as `v ~ x1 * x2` \* `a`, `t`,
+`z`, `v`: can only contain names of trial-level variables in `data2`. \*
+`y`: can only contain names of covariates in `data1` or parameters
+specified before in the format of `{a/t/z/v}_trial_level_variables`For
+example `v_x1` for main effect and `v_x1_x2` for interaction term.
+
+`family` is the family of distribution of outcome `y`, similar to ones
+in generalized linear model. It can take either `gaussian`, `bernoulli`
+or `poisson`. Only canonical link function is used in RegDDM.
+
+`ddm_link` specifies the relationship between DDM parameters of each
+trial and trial-level parameters. By default,
+
+``` r
+  ddm_link = list(
+    a = "exp",
+    t = "exp",
+    z = "inv_logit",
+    v = ""
+  )
+```
+
+`init` how to initialize the MCMC algorithm `scale`
