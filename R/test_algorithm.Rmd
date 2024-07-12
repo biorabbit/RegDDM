@@ -1,0 +1,349 @@
+
+
+```{r}
+library(tidyverse)
+library(RegDDM)
+```
+# function for generating fake data to test trial numbers
+```{r}
+generate_fake_data <- function(
+    N = 30,
+    beta_0 = 0.2,
+    sigma_y = 0.1,
+    n_xvar = 0,
+    n_trials = 100
+){
+  x1 = rnorm(n_trials*N)
+  x2 = rnorm(n_trials*N)
+  
+  
+  data1_true = tibble::tibble(
+    id = 1:N,
+    t_0 = runif(N, 0.1, 0.4),
+    a_0 = rnorm(N, 1.6, 0.4),
+    z_0 = runif(N, 0.2, 0.9),
+    v_0 = rnorm(N, 1.1, 0.3),
+    v_x1 = ifelse(n_xvar >= 1,runif(N), rep(0, N)), # first trial-level variable
+    v_x2 = ifelse(n_xvar == 2,runif(N), rep(0, N)), # second trial-level variable
+    y = rep(beta_0, N) + rnorm(N, 0, sigma_y) # y is independent of DDMs here
+  )
+  data2_true = dplyr::bind_cols(x1, x2)
+  colnames(data2_true) = c("x1", "x2")
+
+  # this function calculates drift rate given trial-level variables
+  # by default, we assume the drift rate to be fully determined
+  calc_v = function(v_0, v_x1, v_x2, x1, x2, sigma_v = 0){
+    return(v_0 + v_x1*x1 + v_x2*x2 + rnorm(1, 0, sigma_v))
+  }
+
+  # this function simulates DDM using easyRT
+  r_ddm = function(a,z,t,v){
+    params = list(
+      drift = v,
+      bs = a,
+      bias = z,
+      ndt = t
+    )
+    tmp = easyRT::ddm_data(n = 1, drift = v, bs = a, bias = z*a, ndt = t, ndt_var = 0.001)
+    return(tmp$data)
+  }
+
+  # generate fake response and reaction time for each trial.
+  # these are the trial-level true parameters with output
+  data2_true =
+    dplyr::mutate(
+      data2_true,
+      id = rep(1:N, each = n_trials),
+      t = rep(data1_true$t_0, each = n_trials),
+      a = rep(data1_true$a_0, each = n_trials),
+      z = rep(data1_true$z_0, each = n_trials),
+      v_0 = rep(data1_true$v_0, each = n_trials),
+      v_x1 = rep(data1_true$v_x1, each = n_trials),
+      v_x2 = rep(data1_true$v_x2, each = n_trials),
+      v = purrr::pmap(list(v_0, v_x1, v_x2, x1, x2), calc_v),
+      ddm = purrr::pmap(list(a,z,t,v), r_ddm)
+    )
+
+  data2_true =
+    tidyr::unnest(data2_true, ddm)
+
+  data2_true =
+    dplyr::mutate(
+      data2_true,
+      response = ifelse(response == "upper", 1, 0)
+    )
+
+  return(list(
+    data1 = data1_true,
+    data2 = data2_true
+  ))
+}
+
+fit_model = function(
+  n_xvar = 0,
+  data1,
+  data2
+){
+  data1 = data1 %>%
+    select(id, y)
+  
+  data2 = data2 %>%
+    select(
+      id, x1, x2, rt, response
+    )
+  if(n_xvar == 0){
+    v = c()
+  }
+  else if(n_xvar ==1){
+    v = c("x1")
+  }
+  else if(n_xvar ==2){
+    v = c("x1", "x2")
+  }
+  else{
+    stop("no more than 2 trial-level variables")
+  }
+  
+  model = list(
+    a = c(),
+    z = c(),
+    t = c(),
+    v = v,
+    y = c()
+  )
+  
+  fit = regddm(
+    data1,
+    data2,
+    model = model,
+    warmup = 700,
+    iter = 1000,
+    chains = 4,
+    cores = 4,
+    thin = 1,
+  )
+  
+  return(fit)
+}
+
+
+
+
+
+```
+
+
+# see how different numbers of trials influence posterior correlation and standard deviation
+```{r}
+n_trials = c(20, 50, 100, 200)
+n_xvar = c(0, 1, 2)
+
+test_grid = expand.grid(n_xvar, n_trials) %>%
+  tibble()
+colnames(test_grid) <- c("n_xvar", "n_trials")
+
+test_grid = test_grid %>%
+  mutate(
+    test_data = purrr::map2(n_xvar, n_trials, ~generate_fake_data(n_xvar = .x, n_trials = .y) ),
+    data1 = map(test_data, ~.[["data1"]]),
+    data2 = map(test_data,  ~.[["data2"]])
+  ) %>%
+  select(-test_data)
+
+tmp = test_grid %>%
+  mutate(
+    fits = pmap(list(n_xvar, data1, data2), fit_model)
+  )
+
+
+
+
+
+
+
+
+```
+
+# temporary code to see if RegDDM works with missing data and also with other distributinos
+```{r}
+invlogit <- function(x){
+  return(1/(1+exp(-x)))
+}
+
+# function for generating fake data to test trial numbers
+generate_fake_data <- function(
+    N = 30,
+    beta_0 = 0.2,
+    sigma_y = 0.1,
+    n_xvar = 2,
+    n_trials = 100
+){
+  x1 = rnorm(n_trials*N)
+  x2 = rbernoulli(n_trials*N)
+  
+  
+  data1_true = 
+    tibble::tibble(
+      id = 1:N,
+      t_0 = runif(N, 0.1, 0.4),
+      a_0 = rnorm(N, 1.6, 0.4),
+      z_0 = runif(N, 0.2, 0.9),
+      v_0 = rnorm(N, 1.1, 0.3),
+      v_x1 = rnorm(N)*ifelse(n_xvar >= 1, 1, 0), # first trial-level variable
+      v_x2 = rnorm(N)*ifelse(n_xvar == 2, 1, 0), # second trial-level variable
+      #y = rep(beta_0, N) + rnorm(N, 0, sigma_y) # y is independent of DDMs here
+      y = rep(beta_0, N) + v_x1 + v_x2,
+    ) %>%
+    mutate(y = map(y, ~as.integer(rbernoulli(1, p = invlogit(.x))))) %>%
+    unnest(y)
+  data2_true = dplyr::bind_cols(x1, x2)
+  colnames(data2_true) = c("x1", "x2")
+
+  # this function calculates drift rate given trial-level variables
+  # by default, we assume the drift rate to be fully determined
+  calc_v = function(v_0, v_x1, v_x2, x1, x2, sigma_v = 0){
+    return(v_0 + v_x1*x1 + v_x2*x2 + rnorm(1, 0, sigma_v))
+  }
+
+  # this function simulates DDM using easyRT
+  r_ddm = function(a,z,t,v){
+    params = list(
+      drift = v,
+      bs = a,
+      bias = z,
+      ndt = t
+    )
+    tmp = easyRT::ddm_data(n = 1, drift = v, bs = a, bias = z*a, ndt = t, ndt_var = 0.001)
+    return(tmp$data)
+  }
+
+  # generate fake response and reaction time for each trial.
+  # these are the trial-level true parameters with output
+  data2_true =
+    dplyr::mutate(
+      data2_true,
+      id = rep(1:N, each = n_trials),
+      t = rep(data1_true$t_0, each = n_trials),
+      a = rep(data1_true$a_0, each = n_trials),
+      z = rep(data1_true$z_0, each = n_trials),
+      v_0 = rep(data1_true$v_0, each = n_trials),
+      v_x1 = rep(data1_true$v_x1, each = n_trials),
+      v_x2 = rep(data1_true$v_x2, each = n_trials),
+      v = purrr::pmap(list(v_0, v_x1, v_x2, x1, x2), calc_v),
+      ddm = purrr::pmap(list(a,z,t,v), r_ddm)
+    )
+
+  data2_true =
+    tidyr::unnest(data2_true, ddm)
+
+  data2_true =
+    dplyr::mutate(
+      data2_true,
+      response = ifelse(response == "upper", 1, 0)
+    )
+
+  return(list(
+    data1 = data1_true,
+    data2 = data2_true
+  ))
+}
+
+
+fake_data  = generate_fake_data()
+
+data1 = fake_data[["data1"]] %>% dplyr::select(id,y)
+  mutate(c = c(rnorm(29),NA)) 
+
+data2 = fake_data[["data2"]] %>% dplyr::select(id, x1, x2, response, rt) %>%
+  mutate(x2 = as.numeric(x2))
+
+fake_data[["data1"]] %>% dplyr::select(v_x1,v_x2) %>%
+  bind_cols(data1) %>%
+  glm(y ~ v_x1+v_x2, data = ., family = binomial(link = "logit")) %>%
+  summary()
+
+full_model = list(
+  v ~ x1 + x2,
+  y ~ v_x1 + v_x2
+)
+
+N=30
+chains = 4
+init_list = list(t_0 = (rep(0.01, N)), a_0 = (rep(1, N)), v_0 = rep(1, N), z_0 = rep(0.5, N))
+init = replicate(chains, init_list, simplify = FALSE)
+
+fit = regddm(
+  data1,
+  data2,
+  model = full_model,
+  family = "bernoulli",
+  ddm_link = "ident",
+  init = init,
+  scale = FALSE,
+  warmup = 150,
+  iter = 200,
+  chains = 4,
+  cores = 4,
+  thin = 1
+)
+
+rstan::stanc("stan_model.stan")
+ttt= rstan::summary(fit)$summary
+```
+
+
+```{r}
+fit = regddm(
+  data1,
+  data2,
+  model = full_model,
+  family = "bernoulli",
+  ddm_link = "default",
+  
+  warmup = 400,
+  iter = 500,
+  chains = 4,
+  cores = 4,
+  thin = 1
+)
+
+fake_data$data2
+  select(id, y) %>%
+  head()
+
+```
+
+```{r}
+fake_data = RegDDM::generate_fake_data()
+
+full_model = c(
+  v~x1+x2,
+  y~v_x1+v_x2+c1+c2
+)
+
+
+fit1 = regddm(
+  fake_data$data1,
+  fake_data$data2,
+  model = full_model,
+  family = "gaussian",
+  ddm_link = "ident",
+  init = init,
+  scale = FALSE,
+  warmup = 500,
+  iter = 700,
+  chains = 4,
+  cores = 4,
+  thin = 1
+)
+
+fake_data$data1_true %>% dplyr::select(y,v_x1,v_x2,c1,c2) %>%
+  lm(y ~ v_x1+v_x2+c1+c2, data = ., family = binomial(link = "logit")) %>%
+  summary()
+
+ttt= rstan::summary(fit)$summary
+ttt1= rstan::summary(fit1)$summary
+rstan::traceplot(fit)
+```
+
+

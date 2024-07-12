@@ -2,8 +2,8 @@
 #'
 #'
 #'
-#'
-#' @export
+#' @keywords internal
+#' @noRd
 format_data = function(
     data1,
     data2
@@ -21,7 +21,20 @@ format_data = function(
     if(cov == "id" | cov == "y"){
       next
     }
-    out_list[[cov]] = data1[[cov]]
+    n_mis = sum(is.na(data1[[cov]]))
+    if(n_mis == 0){
+      out_list[[cov]] = data1[[cov]]
+      next
+    }
+    mis_rows = dplyr::filter(data1,is.na(pull(data1, cov)))
+    obs_rows = dplyr::filter(data1,!is.na(pull(data1, cov)))
+    out_list[[paste0("N_obs_", cov)]] = nrow(obs_rows)
+    out_list[[paste0("N_mis_", cov)]] = nrow(mis_rows)
+    out_list[[paste0(cov, "_obs")]] = dplyr::pull(obs_rows, cov)
+    out_list[[paste0("ii_obs_", cov)]] = dplyr::pull(obs_rows, id)
+    out_list[[paste0("ii_mis_", cov)]] = dplyr::pull(mis_rows, id)
+
+
   }
 
   for(xvar in colnames(data2)){
