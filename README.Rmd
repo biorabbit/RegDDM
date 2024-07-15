@@ -40,7 +40,7 @@ library(RegDDM)
 Alternatively, you can generate some other fake data using the `generate_fake_data()` function, which gives you the flexibility to test the models.
 
 ```{r, cache = FALSE, warning = FALSE}
-fake_data = generate_fake_data()
+fake_data = generate_fake_data(N = 20)
 data1 = fake_data[["data1"]]
 data2 = fake_data[["data2"]]
 ```
@@ -62,8 +62,8 @@ fit = regddm(
   model = model,
   family = "gaussian",
   scale = FALSE,
-  warmup = 500,
-  iter = 700
+  warmup = 700,
+  iter = 1000
 )
 
 round(rstan::summary(fit)$summary, 3)[1:6, c(1,3,4,8,9,10)]
