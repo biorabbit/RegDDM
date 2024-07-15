@@ -16,4 +16,5 @@ Imports:
     easyRT (>= 0.1.0),
     stringr,
     dplyr,
-    purrr
+    purrr,
+    rtdists,

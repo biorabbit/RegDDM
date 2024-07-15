@@ -51,8 +51,8 @@ generate_fake_data <- function(
       bias = z,
       ndt = t
     )
-    tmp = easyRT::ddm_data(n = 1, drift = v, bs = a, bias = z*a, ndt = t, ndt_var = 0.001)
-    return(tmp$data)
+    tmp = rtdists::rdiffusion(n = 1, a = a, v = v, z = z, t0 = t)
+    return(tmp)
   }
 
   # generate fake response and reaction time for each trial.

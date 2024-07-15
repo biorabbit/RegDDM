@@ -14,7 +14,7 @@ MCMC!
 You can install latest version of RegDDM using Github:
 
 ``` r
-remote::install_github("biorabbit/RegDDM")
+remotes::install_github("biorabbit/RegDDM")
 ```
 
 ## Example
@@ -50,9 +50,10 @@ model = list(
 ```
 
 Use the main function to automatically generate the stan model and
-summary the results. This could take ~10 minutes to run. The rows
-starting with ‘beta\_’ are the posterior distributions of regression
-parameters:
+summary the results. This could take ~10 minutes to run. Some warnings
+may pop out depending on model convergence, which can be helped by
+increasing iterations. The rows starting with ‘beta\_’ are the posterior
+distributions of regression parameters:
 
 ``` r
 fit = regddm(
@@ -64,37 +65,16 @@ fit = regddm(
   warmup = 500,
   iter = 700
 )
-#> Warning in check_data(data1, data2): variabley are not scaled, which may influence model convergence and validity of priors.
-#> Warning in mean.default(data1, na.rm = TRUE): 参数不是数值也不是逻辑值：回覆NA
-#> Warning in sqrt(var(data1, na.rm = TRUE) * n_obs/(n_obs - 1)): 产生了NaNs
-#> Warning in mean.default(data1, na.rm = TRUE): 参数不是数值也不是逻辑值：回覆NA
-#> Warning in sqrt(var(data1, na.rm = TRUE) * n_obs/(n_obs - 1)): 产生了NaNs
-#> Warning: There were 105 divergent transitions after warmup. See
-#> https://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-#> to find out why this is a problem and how to eliminate them.
-#> Warning: There were 244 transitions after warmup that exceeded the maximum treedepth. Increase max_treedepth above 10. See
-#> https://mc-stan.org/misc/warnings.html#maximum-treedepth-exceeded
-#> Warning: There were 2 chains where the estimated Bayesian Fraction of Missing Information was low. See
-#> https://mc-stan.org/misc/warnings.html#bfmi-low
-#> Warning: Examine the pairs() plot to diagnose sampling problems
-#> Warning: The largest R-hat is 1.28, indicating chains have not mixed.
-#> Running the chains for more iterations may help. See
-#> https://mc-stan.org/misc/warnings.html#r-hat
-#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-#> Running the chains for more iterations may help. See
-#> https://mc-stan.org/misc/warnings.html#bulk-ess
-#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-#> Running the chains for more iterations may help. See
-#> https://mc-stan.org/misc/warnings.html#tail-ess
+
 
 round(rstan::summary(fit)$summary, 3)[1:6, c(1,3,4,8,9,10)]
-#>              mean     sd    2.5%  97.5%   n_eff  Rhat
-#> beta_0     -4.088 12.665 -41.660 11.741  15.429 1.258
-#> beta_v_x1   1.176  4.331  -5.293  8.173  58.682 1.071
-#> beta_v_x2 -11.086 30.951 -88.337 23.608  14.268 1.277
-#> beta_c1    -1.089  0.256  -1.583 -0.536 297.927 1.009
-#> beta_c2    -0.025  0.227  -0.477  0.393 325.549 1.008
-#> sigma_y     0.258  0.192   0.038  0.708  43.071 1.077
+#>             mean    sd   2.5%  97.5%   n_eff  Rhat
+#> beta_0    -0.019 0.839 -1.607  0.880  45.169 1.074
+#> beta_v_x1  1.052 1.017 -0.051  2.957  40.073 1.086
+#> beta_v_x2 -0.127 0.461 -1.005  0.891  97.702 1.020
+#> beta_c1   -1.026 0.173 -1.306 -0.716 323.395 1.005
+#> beta_c2    0.132 0.099 -0.073  0.332 364.489 1.002
+#> sigma_y    0.210 0.247  0.039  0.647  58.069 1.055
 ```
 
 Comparing with a liner model using the true sensitivity:
@@ -106,24 +86,24 @@ summary(lm(y ~ v_x1 + v_x2 + c1 + c2, data = fake_data[["data1_true"]]))
 #> lm(formula = y ~ v_x1 + v_x2 + c1 + c2, data = fake_data[["data1_true"]])
 #> 
 #> Residuals:
-#>         1         2         3         4         5         6         7         8 
-#> -0.027036 -0.016014 -0.034147 -0.045841  0.175341 -0.016902 -0.009869  0.064586 
-#>         9        10 
-#> -0.064369 -0.025750 
+#>        1        2        3        4        5        6        7        8 
+#> -0.02469  0.04263 -0.01908  0.09315 -0.01233 -0.10934  0.12474 -0.03710 
+#>        9       10 
+#> -0.02976 -0.02824 
 #> 
 #> Coefficients:
 #>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)  0.15982    0.17400   0.919  0.40050    
-#> v_x1         1.01694    0.12963   7.845  0.00054 ***
-#> v_x2        -0.08156    0.17197  -0.474  0.65529    
-#> c1          -0.93483    0.05729 -16.317 1.58e-05 ***
-#> c2           0.02271    0.04611   0.493  0.64319    
+#> (Intercept)  0.11060    0.10552   1.048  0.34259    
+#> v_x1         1.06778    0.16878   6.326  0.00145 ** 
+#> v_x2         0.03067    0.14810   0.207  0.84412    
+#> c1          -0.97797    0.03704 -26.402 1.46e-06 ***
+#> c2           0.05609    0.03691   1.520  0.18904    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 0.09419 on 5 degrees of freedom
-#> Multiple R-squared:  0.9927, Adjusted R-squared:  0.9869 
-#> F-statistic: 170.2 on 4 and 5 DF,  p-value: 1.581e-05
+#> Residual standard error: 0.09186 on 5 degrees of freedom
+#> Multiple R-squared:  0.9939, Adjusted R-squared:  0.989 
+#> F-statistic: 203.5 on 4 and 5 DF,  p-value: 1.015e-05
 ```
 
 # Using your own data!

@@ -25,7 +25,7 @@ Build Regression models over Drift Diffusion Model parameters using MCMC!
 You can install latest version of RegDDM using Github:
 
 ``` r
-remote::install_github("biorabbit/RegDDM")
+remotes::install_github("biorabbit/RegDDM")
 ```
 
 ## Example
@@ -54,7 +54,7 @@ model = list(
 )
 ```
 
-Use the main function to automatically generate the stan model and summary the results. This could take ~10 minutes to run. The rows starting with 'beta_' are the posterior distributions of regression parameters:  
+Use the main function to automatically generate the stan model and summary the results. This could take ~10 minutes to run. Some warnings may pop out depending on model convergence, which can be helped by increasing iterations. The rows starting with 'beta_' are the posterior distributions of regression parameters:  
 ```{r, cache = FALSE, warnings = FALSE}
 fit = regddm(
   data1,
