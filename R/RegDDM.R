@@ -101,7 +101,7 @@ regddm = function(
 
   # find the initialization for MCMC sampling
   if(is.character(init) && init == "default"){
-    init_list = list(t_0 = log(rep(0.05, N)), a_0 = log(rep(1, N)), v_0 = rep(1, N), z_0 = rep(0, N))
+    init_list = list(t_0 = log(rep(0.03, N)), a_0 = log(rep(1, N)), v_0 = rep(1, N), z_0 = rep(0, N))
     init = replicate(chains, init_list, simplify = FALSE)
   }
 

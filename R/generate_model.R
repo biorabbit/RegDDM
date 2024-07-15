@@ -40,8 +40,8 @@ generate_model = function(
       n_obs = n_obs,
       iid_mis = which(is.na(dat)),
       iid_obs = which(!is.na(dat)),
-      mean_hat = mean(data1, na.rm = TRUE),
-      sd_hat = sqrt(var(data1, na.rm = TRUE)*n_obs/(n_obs-1)),
+      mean_hat = mean(dat, na.rm = TRUE),
+      sd_hat = sqrt(var(dat, na.rm = TRUE)*n_obs/(n_obs-1)),
       is_binary = identical(sort(dat_unique), c(0,1))
     )
   }

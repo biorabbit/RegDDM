@@ -51,7 +51,7 @@ generate_fake_data <- function(
       bias = z,
       ndt = t
     )
-    tmp = rtdists::rdiffusion(n = 1, a = a, v = v, z = z, t0 = t)
+    tmp = rtdists::rdiffusion(n = 1, a = a, v = v, z = z, t0 = t, st0 = 0.001)
     return(tmp)
   }
 
