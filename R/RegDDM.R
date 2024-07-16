@@ -97,7 +97,10 @@ regddm = function(
       v = ""
     )
   }
-  generate_model(xvar, cvar, data1, model,ddm_link,family)
+
+  file_name = stringr::str_c(sample.int(999999, size = 1),"-stan_model.stan")
+
+  generate_model(xvar, cvar, data1, model,ddm_link,family,file_name)
 
   # find the initialization for MCMC sampling
   if(is.character(init) && init == "default"){
@@ -106,7 +109,7 @@ regddm = function(
   }
 
   # fit the stan model
-  stan_model <- "stan_model.stan"
+  stan_model <- file_name
   fit <- rstan::stan(
     file = stan_model,
     data = stan_data,

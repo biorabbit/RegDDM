@@ -1,5 +1,10 @@
-.libPaths("/ifs/home/msph/LeeLab/zj2357/R_libs")
-.libPaths("/home/jinzekai/R_libs/")
+.libPaths(c(
+  "/ifs/home/msph/LeeLab/zj2357/R_libs",
+  "/ifs/scratch/msph/software/R/library422",
+  "/home/jinzekai/R_libs/"
+))
+
+
 
 
 generate_fake_data <- function(
@@ -140,8 +145,8 @@ simulate_experiment = function(
     model,
     family = "gaussian",
     scale = FALSE,
-    warmup = 1000,
-    iter = 1500
+    warmup = 700,
+    iter = 1000
   )
 
   res = rstan::summary(fit)$summary
@@ -161,7 +166,7 @@ simulate_experiment = function(
   }
 
   res_2step = broom::tidy(
-    lm(y_formula, dat_2step),conf.int = TRUE, conf.level = 0.9
+    lm(y_formula, dat_2step),conf.int = TRUE, conf.level = 0.95
   )
 
 
@@ -269,5 +274,7 @@ for(i in 1:as.numeric(args[7])){
   )
 }
 
-"N,n_each,n_xvar,outcome_link,outcome_model,mse_a_0,mse_t_0,mse_z_0,mse_v_0,mse_v_x1,mse_v_x2,beta_0_true,beta_0_2step_mean,beta_0_2step_se,beta_0_2step_cil,beta_0_2step_cih,beta_0_2step_sig,beta_0_mean,beta_0_sd,beta_0_cil,beta_0_cih,beta_v_x1_true,beta_v_x1_2step_mean,beta_v_x1_2step_se,beta_v_x1_2step_cil,beta_v_x1_2step_cih,beta_v_x1_2step_sig,beta_v_x1_mean,beta_v_x1_sd,beta_v_x1_cil,beta_v_x1_cih,beta_v_x2_true,beta_v_x2_2step_mean,beta_v_x2_2step_se,beta_v_x2_2step_cil,beta_v_x2_2step_cih,beta_v_x2_2step_sig,beta_v_x2_mean,beta_v_x2_sd,beta_v_x2_cil,beta_v_x2_cih,sigma_y"
+"
+N,n_each,n_xvar,outcome_link,outcome_model,mse_a_0,mse_t_0,mse_z_0,mse_v_0,mse_v_x1,mse_v_x2,beta_0_true,beta_0_2step_mean,beta_0_2step_se,beta_0_2step_cil,beta_0_2step_cih,beta_0_2step_sig,beta_0_mean,beta_0_sd,beta_0_cil,beta_0_cih,beta_v_x1_true,beta_v_x1_2step_mean,beta_v_x1_2step_se,beta_v_x1_2step_cil,beta_v_x1_2step_cih,beta_v_x1_2step_sig,beta_v_x1_mean,beta_v_x1_sd,beta_v_x1_cil,beta_v_x1_cih,beta_v_x2_true,beta_v_x2_2step_mean,beta_v_x2_2step_se,beta_v_x2_2step_cil,beta_v_x2_2step_cih,beta_v_x2_2step_sig,beta_v_x2_mean,beta_v_x2_sd,beta_v_x2_cil,beta_v_x2_cih,sigma_y
+"
 
