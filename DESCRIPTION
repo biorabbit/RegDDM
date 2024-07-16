@@ -13,7 +13,6 @@ URL: https://github.com/biorabbit/RegDDM
 BugReports: https://github.com/biorabbit/RegDDM/issues
 Imports:
     rstan (>= 2.32.3),
-    easyRT (>= 0.1.0),
     stringr,
     dplyr,
     purrr,
