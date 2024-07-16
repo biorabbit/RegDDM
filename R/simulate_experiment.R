@@ -15,7 +15,7 @@ generate_fake_data <- function(
 
 
   data1_true =
-    tibble::tibble(
+    dplyr::tibble(
       id = 1:N,
       t_0 = runif(N, 0.1, 0.4),
       a_0 = runif(N, 1, 3),
