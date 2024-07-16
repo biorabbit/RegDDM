@@ -15,5 +15,7 @@ Imports:
     rstan (>= 2.32.3),
     stringr,
     dplyr,
+    tidyr,
     purrr,
     rtdists,
+    broom,
