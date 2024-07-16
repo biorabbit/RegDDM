@@ -20,13 +20,16 @@ generate_model = function(
     #N,
     ddm_link,
     # rt_limits, # this is ugly but we need to specify the upper limit of reaction time for each subject (no longer needed)
-    family
+    family,
+    file_name
 ){
   # this function writes to a file containing the stan model
   # currently only support gaussian, bernoulli and poisson distribution
   if(!family %in% c("gaussian", "bernoulli", "poisson")){
     stop(stringr::str_interp("unsupported distribution family: ${family}\n"))
   }
+
+
 
   # summary the information for missing data (for data1 only)
   missing_info = list()
@@ -49,7 +52,7 @@ generate_model = function(
   # internal function to append stan code to the model file
   add_script = function(str){
     str = stringr::str_interp(str)
-    write(str, file = "stan_model.stan", append = TRUE)
+    write(str, file = file_name, append = TRUE)
   }
 
   # creating a file and start writing
