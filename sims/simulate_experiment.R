@@ -145,8 +145,8 @@ simulate_experiment = function(
     model,
     family = "gaussian",
     scale = FALSE,
-    warmup = 700,
-    iter = 1000
+    warmup = 1000,
+    iter = 1500
   )
 
   res = rstan::summary(fit)$summary
