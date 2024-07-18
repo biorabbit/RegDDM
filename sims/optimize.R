@@ -201,10 +201,6 @@ simulate_experiment = function(
   }
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> b857f35b6e4b6978b6f9ae238805f689b9195c14
   time_taken = system.time({
   fit = RegDDM::regddm(
     fake_data[["data1"]],
@@ -214,13 +210,8 @@ simulate_experiment = function(
     init = init,
     ddm_link = ddm_link,
     scale = FALSE,
-<<<<<<< HEAD
     warmup = 1000,
     iter = 1500
-=======
-    warmup = 500,
-    iter = 1000
->>>>>>> b857f35b6e4b6978b6f9ae238805f689b9195c14
   )})
 
   res = rstan::summary(fit)$summary
