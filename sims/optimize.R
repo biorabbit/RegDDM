@@ -215,8 +215,8 @@ simulate_experiment = function(
     init = init,
     ddm_link = ddm_link,
     scale = FALSE,
-    warmup = 1000,
-    iter = 1500
+    warmup = 500,
+    iter = 1000
   )})
 
   res = rstan::summary(fit)$summary
