@@ -1,3 +1,8 @@
+.libPaths(c(
+  "/ifs/home/msph/LeeLab/zj2357/R_libs",
+  "/ifs/scratch/msph/software/R/library422",
+  "/home/jinzekai/R_libs/"
+))
 
 generate_fake_data <- function(
     N = 30,
