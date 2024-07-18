@@ -146,10 +146,10 @@ simulate_experiment = function(
   }
 
   init_list = list(
-    t_0 = log(fake_data[["data1_true"]]$t_0),
-    a_0 = log(fake_data[["data1_true"]]$a_0),
+    t_0 = (fake_data[["data1_true"]]$t_0),
+    a_0 = (fake_data[["data1_true"]]$a_0),
     v_0 = fake_data[["data1_true"]]$v_0,
-    z_0 = logit(fake_data[["data1_true"]]$z_0),
+    z_0 = (fake_data[["data1_true"]]$z_0),
     v_x1 = fake_data[["data1_true"]]$v_x1,
     v_x2 = fake_data[["data1_true"]]$v_x2,
     beta_0 = 0,
@@ -202,7 +202,7 @@ simulate_experiment = function(
   }
   else if(mode == 4){
     init = init_true
-    ddm_link = "default"
+    ddm_link = "ident"
   }
 
 
