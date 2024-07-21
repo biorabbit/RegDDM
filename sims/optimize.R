@@ -146,10 +146,10 @@ simulate_experiment = function(
   }
 
   init_list = list(
-    t_0 = (fake_data[["data1_true"]]$t_0),
-    a_0 = (fake_data[["data1_true"]]$a_0),
+    t_0 = log(fake_data[["data1_true"]]$t_0),
+    a_0 = log(fake_data[["data1_true"]]$a_0),
     v_0 = fake_data[["data1_true"]]$v_0,
-    z_0 = (fake_data[["data1_true"]]$z_0),
+    z_0 = logit(fake_data[["data1_true"]]$z_0),
     v_x1 = fake_data[["data1_true"]]$v_x1,
     v_x2 = fake_data[["data1_true"]]$v_x2,
     beta_0 = 0,
@@ -202,7 +202,12 @@ simulate_experiment = function(
   }
   else if(mode == 4){
     init = init_true
-    ddm_link = "ident"
+    ddm_link = "default"
+  }
+  else if (mode == 5){
+    init_list = list(t_0 = log(rep(0.1, N)), a_0 = log(rep(1, N)), v_0 = rep(1, N), z_0 = rep(0, N), u_t_0 = 0.2, sig_t_0 = 0.4)
+    init = replicate(4, init_list, simplify = FALSE)
+    ddm_link = "default"
   }
 
 
@@ -221,6 +226,17 @@ simulate_experiment = function(
 
   res = rstan::summary(fit)$summary
   res = as.data.frame(res)
+
+  figure_dir = "figures1/"
+  for(predictor in rownames(res)){
+    if(stringr::str_detect(predictor,"transformed")){
+      next
+    }
+    fig = rstan::traceplot(fit, pars = predictor, inc_warmup = TRUE)
+    ggplot2::ggsave(paste0(figure_dir,predictor,".png"),fig)
+  }
+
+  return(0)
 
   dat_2step = dplyr::select(fake_data[["data1"]],y)
 
