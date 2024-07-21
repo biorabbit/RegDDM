@@ -57,20 +57,20 @@ check_data = function(
   }
 
   unscaled_var_list = c()
-  for(variable in colnames(data1)){
-    if(variable == "id"){
+  for(variable in colnames(data2)){
+    if(variable %in% c("id", "response", "rt")){
       next()
     }
     if(
-      abs(mean(dplyr::pull(data1, variable), na.rm = TRUE))>1 |
-      sd(dplyr::pull(data1, variable), na.rm = TRUE) > 2 |
-      sd(dplyr::pull(data1, variable), na.rm = TRUE) < 0.5
+      abs(mean(dplyr::pull(data2, variable), na.rm = TRUE))> 1 |
+      sd(dplyr::pull(data2, variable), na.rm = TRUE) > 2 |
+      sd(dplyr::pull(data2, variable), na.rm = TRUE) < 0.5
     ){
       unscaled_var_list = c(unscaled_var_list, variable)
     }
   }
   if(length(unscaled_var_list) !=0){
-    warning(paste0("variable", unscaled_var_list, " are not scaled, which may influence model convergence and validity of priors.\n"))
+    warning(paste0("trial-level variable: ", unscaled_var_list, " are not scaled. Default priors and constraints unavailable.\n"))
   }
 }
 

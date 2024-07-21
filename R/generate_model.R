@@ -16,6 +16,7 @@ generate_model = function(
     x_names,
     c_names,
     data1,
+    data2,
     model,
     #N,
     ddm_link,
@@ -48,6 +49,42 @@ generate_model = function(
       is_binary = identical(sort(dat_unique), c(0,1))
     )
   }
+
+  # summary the unscaled trial-level variables and disable the corresponding ddm parameters
+  unscaled_var_list = c()
+  for(variable in colnames(data2)){
+    if(variable %in% c("id", "response", "rt")){
+      next()
+    }
+    if(
+      abs(mean(dplyr::pull(data2, variable), na.rm = TRUE))> 1 |
+      sd(dplyr::pull(data2, variable), na.rm = TRUE) > 2 |
+      sd(dplyr::pull(data2, variable), na.rm = TRUE) < 0.5
+    ){
+      unscaled_var_list = c(unscaled_var_list, variable)
+    }
+  }
+  default_ddm_constraints = list(a = "<lower = 0>", t = "<lower = 0.01>", z = "<lower = 0.01, upper = 0.99>", v = "")
+  default_ddm_priors = list(a = TRUE, t = TRUE, z = TRUE, v = TRUE)
+  disabled_ddm_prior = c()
+  for(param in c("a", "z", "t", "v")){
+    variables = rownames(attr(terms(model[[param]]), "factors"))
+    for(term in variables){
+      if(term == param){
+        next
+      }
+      if(term %in% unscaled_var_list){
+        default_ddm_constraints[[param]] = ""
+        default_ddm_priors[[param]] = FALSE
+        disabled_ddm_prior = c(disabled_ddm_prior, param)
+      }
+    }
+  }
+
+  if(length(unscaled_var_list) >0 & FALSE %in% default_ddm_priors){
+    warning(paste0("variable: ", unscaled_var_list, "are not scaled. Default prior and constraints for ",disabled_ddm_prior, " are disabled. Be cautious about model convergence!"))
+  }
+
 
   # internal function to append stan code to the model file
   add_script = function(str){
@@ -239,16 +276,14 @@ generate_model = function(
   #}
 
   # using the ddm_link to link the linear predictor with the ddm parameters
-  add_script("  // transformation of baseline ddm parameter to apply prior distribution")
-  add_script("  real a_0_transformed[N];")
-  add_script("  real z_0_transformed[N];")
-  add_script("  real v_0_transformed[N];")
-  add_script("  real t_0_transformed[N];")
+  add_script("  // transformation of baseline ddm parameter to apply prior distribution and constraints")
+  for(param in c("a", "t", "z", "v")){
+    add_script("  real${default_ddm_constraints[[param]]} ${param}_0_transformed[N];")
+  }
   add_script("  for(i in 1:N){")
-    add_script("    a_0_transformed[i] = ${ddm_link[['a']]}(a_0[i]);")
-    add_script("    z_0_transformed[i] = ${ddm_link[['z']]}(z_0[i]);")
-    add_script("    v_0_transformed[i] = ${ddm_link[['v']]}(v_0[i]);")
-    add_script("    t_0_transformed[i] = ${ddm_link[['t']]}(t_0[i]);")
+  for(param in c("a", "t", "z", "v")){
+    add_script("    ${param}_0_transformed[i] = ${ddm_link[[param]]}(${param}_0[i]);")
+  }
   add_script("  }")
 
   # combining the missing and observed covariates
@@ -280,14 +315,23 @@ generate_model = function(
   # priors.
   # priors for ddm group parameters, adopted from HDDM
   add_script("  // priors for ddm group parameters")
+  if(default_ddm_priors[["a"]]){
   add_script("  u_a_0 ~ gamma(1.125, 0.75);")
   add_script("  sig_a_0 ~ normal(0, 0.1);")
-  add_script("  u_v_0 ~ normal(2, 3);")
-  add_script("  sig_v_0  ~ normal(0, 2);")
-  add_script("  u_z_0 ~ normal(0.5, 0.5);")
-  add_script("  sig_z_0 ~ normal(0, 0.05);")
-  add_script("  u_t_0 ~ gamma(0.08, 0.2);")
-  add_script("  sig_t_0 ~ normal(0, 1);")
+  }
+  if(default_ddm_priors[["t"]]){
+    add_script("  u_t_0 ~ gamma(0.08, 0.2);")
+    add_script("  sig_t_0 ~ normal(0, 1);")
+  }
+  if(default_ddm_priors[["z"]]){
+    add_script("  u_z_0 ~ normal(0.5, 0.5);")
+    add_script("  sig_z_0 ~ normal(0, 0.05);")
+  }
+  if(default_ddm_priors[["v"]]){
+    add_script("  u_v_0 ~ normal(2, 3);")
+    add_script("  sig_v_0  ~ normal(0, 2);")
+  }
+
 
   # modeling missing covariates
   add_script("  ")

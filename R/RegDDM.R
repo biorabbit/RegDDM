@@ -100,11 +100,13 @@ regddm = function(
 
   file_name = stringr::str_c(sample.int(999999, size = 1),"-stan_model.stan")
 
-  generate_model(xvar, cvar, data1, model,ddm_link,family,file_name)
+  generate_model(xvar, cvar, data1, data2, model,ddm_link,family,file_name)
 
   # find the initialization for MCMC sampling
   if(is.character(init) && init == "default"){
-    init_list = list(t_0 = log(rep(0.03, N)), a_0 = log(rep(1, N)), v_0 = rep(1, N), z_0 = rep(0, N))
+    #init_list = list(t_0 = log(rep(0.03, N)), a_0 = log(rep(1, N)), v_0 = rep(1, N), z_0 = rep(0, N))
+    init_list = generate_default_initialization(data1, data2, model, ddm_link)
+
     init = replicate(chains, init_list, simplify = FALSE)
   }
 
