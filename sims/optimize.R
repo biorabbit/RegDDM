@@ -220,23 +220,23 @@ simulate_experiment = function(
     init = init,
     ddm_link = ddm_link,
     scale = FALSE,
-    warmup = 500,
-    iter = 1000
+    warmup = 700,
+    iter = 2000
   )})
 
   res = rstan::summary(fit)$summary
   res = as.data.frame(res)
 
-  figure_dir = "figures1/"
-  for(predictor in rownames(res)){
-    if(stringr::str_detect(predictor,"transformed")){
-      next
-    }
-    fig = rstan::traceplot(fit, pars = predictor, inc_warmup = TRUE)
-    ggplot2::ggsave(paste0(figure_dir,predictor,".png"),fig)
-  }
-
-  return(0)
+  # figure_dir = "figures1/"
+  # for(predictor in rownames(res)){
+  #   if(stringr::str_detect(predictor,"transformed")){
+  #     next
+  #   }
+  #   fig = rstan::traceplot(fit, pars = predictor, inc_warmup = TRUE)
+  #   ggplot2::ggsave(paste0(figure_dir,predictor,".png"),fig)
+  # }
+#
+  # return(0)
 
   dat_2step = dplyr::select(fake_data[["data1"]],y)
 
