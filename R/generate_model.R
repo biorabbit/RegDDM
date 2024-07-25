@@ -93,7 +93,7 @@ generate_model = function(
   }
 
   # creating a file and start writing
-  write("// RegDDM generated stan model", file = "stan_model.stan", append = FALSE)
+  write("// RegDDM generated stan model", file = file_name, append = FALSE)
 
   ########
   # data #
