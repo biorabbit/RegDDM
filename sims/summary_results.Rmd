@@ -1,0 +1,62 @@
+
+
+```{r}
+library(tidyverse)
+library(paletteer)
+```
+
+
+
+
+# Simulation 1: type 2 error rate comparison
+```{r}
+dat = read_csv("experiment02.csv")
+
+binomial_interval = function(n,p,which){
+  result <- binom.test(as.integer(n*p), n, conf.level = 0.95)
+  conf_interval <- result$conf.int
+  if(which == "upper"){
+    return(conf_interval[[2]])
+  }
+  else{
+    return(conf_interval[[1]])
+  }
+}
+
+
+dat %>%
+  filter(max_r_hat < 1.1, max_r_hat > 0.9) %>%
+  mutate(
+    beta_v_x2_sig = ifelse(beta_v_x2_cil*beta_v_x2_cih>0,1,0),
+    beta_v_x2_2step_sig = ifelse(beta_v_x2_2step_cil*beta_v_x2_2step_cih>0,1,0)
+  ) %>%
+  filter(n_each != 30) %>%
+  group_by(n_each) %>%
+  summarise(
+    n = n(),
+    mean_time = mean(time_taken),
+    x2_2step = mean(beta_v_x2_2step_sig),
+    x2 = mean(beta_v_x2_sig)
+  ) %>%
+  pivot_longer(cols = c(x2_2step,x2),names_to = "method", values_to = "type_2_error_rate") %>%
+  mutate(
+    cil = map2_dbl(n, type_2_error_rate, ~binomial_interval(.x, .y, "lower")),
+    cih = map2_dbl(n, type_2_error_rate, ~binomial_interval(.x, .y, "upper"))
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = n_each, y = type_2_error_rate, color = method)) +
+    geom_errorbar(aes(x = n_each, y = type_2_error_rate, ymin = cil, ymax = cih,color = method)) +
+  geom_hline(yintercept=  0.05, color = "red")+
+  annotate("text", x = 440, y = 0.07, label = "a=0.05", color = "red") +
+  scale_color_paletteer_d("fishualize::Acanthurus_coeruleus", labels = c("RegDDM", "2 step")) +
+  xlab("number of trials per subject") + 
+  ylab("type-2 error rate") 
+  
+```
+
+
+
+
+
+
+
