@@ -150,7 +150,7 @@ simulate_experiment = function(
       )
     },error = function(e) {
       cat("Error on condition:", N, n_each, n_xvar, conditionMessage(e), "\n")
-      next
+      return(0)
     })
   })
 
@@ -175,7 +175,7 @@ simulate_experiment = function(
     }
   },error = function(e) {
     cat("Error on condition:", N, n_each, n_xvar, conditionMessage(e), "\n")
-    next
+    return(0)
   })
 
   res_2step = broom::tidy(
