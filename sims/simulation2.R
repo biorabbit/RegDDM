@@ -293,12 +293,24 @@ simulate_experiment = function(
 
 args <- commandArgs(trailingOnly = TRUE)
 
-for(i in 1:as.numeric(args[5])){
+for(i in 1:as.numeric(args[4])){
   simulate_experiment(
     as.numeric(args[1]),
     as.numeric(args[2]),
-    as.numeric(args[3]),
-    args[4]
+    0,
+    args[3]
+  )
+  simulate_experiment(
+    as.numeric(args[1]),
+    as.numeric(args[2]),
+    1,
+    args[3]
+  )
+  simulate_experiment(
+    as.numeric(args[1]),
+    as.numeric(args[2]),
+    2,
+    args[3]
   )
 }
 
