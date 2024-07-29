@@ -440,5 +440,5 @@ generate_model = function(
 
   add_script("}")
 
-  rstan::stanc("stan_model.stan")
+  rstan::stanc(file_name)
 }
