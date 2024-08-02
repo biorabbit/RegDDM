@@ -94,6 +94,7 @@ simulate_experiment = function(
     n_xvar, # v is determined by nothing (0), x1 (1) or x1+x2 (2)
     out_file # which .csv file to append the simulate results.
 ){
+  error_flag = 0
   outcome_model = n_xvar
   beta_0_true = 0
   beta_v_0_true = 0
@@ -150,9 +151,14 @@ simulate_experiment = function(
       )
     },error = function(e) {
       cat("Error on condition:", N, n_each, n_xvar, conditionMessage(e), "\n")
+      error_flag = 1
       return(0)
     })
   })
+
+  if(error_flag == 1){
+    return(0)
+  }
 
   res = rstan::summary(fit)$summary
   res = as.data.frame(res)
@@ -175,8 +181,13 @@ simulate_experiment = function(
     }
   },error = function(e) {
     cat("Error on condition:", N, n_each, n_xvar, conditionMessage(e), "\n")
+    error_flag = 1
     return(0)
   })
+
+  if(error_flag == 1){
+    return(0)
+  }
 
   res_2step = broom::tidy(
     lm(y_formula, dat_2step),conf.int = TRUE, conf.level = 0.95
@@ -210,6 +221,7 @@ simulate_experiment = function(
 
   if(abs(max(res[["Rhat"]])-1)>0.1){
     figure_dir = stringr::str_interp("N${N}_n${n_each}_nxvar${n_xvar}_${sample.int(999999, size = 1)}/")
+    dir.create(figure_dir)
     for(predictor in rownames(res)){
       if(stringr::str_detect(predictor,"transformed")){
         next
