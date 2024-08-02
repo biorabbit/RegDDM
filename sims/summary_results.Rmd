@@ -55,7 +55,60 @@ dat %>%
 ```
 
 
+# Simulation2: performance under different setup
+### computation time for each setup
+```{r}
+dat = read_csv("simulation2.csv")
 
+dat %>%
+  filter(max_r_hat < 1.1, max_r_hat > 0.9) %>%
+  group_by(N, n_each) %>%
+  summarise(
+    n = n(),
+    time = mean(time_taken)
+  ) %>%
+  mutate(N = factor(N)) %>%
+  ggplot() +
+  geom_line(aes(x = n_each, y = time, color = N)) +
+  xlab("number of trials per subject") + 
+  ylab("type-2 error rate") +
+  guides(color=guide_legend(title="Number of Subjects"))
+```
+
+### posterior standard deviation
+```{r}
+draw_figure = function(n_xvars, param){
+  fig = dat %>%
+    filter(n_xvar == n_xvars) %>%
+    group_by(N, n_each) %>%
+    summarise(
+      mean_param_se = mean(get(paste0(param, "_sd")))
+    ) %>%
+  mutate(N = factor(N)) %>%
+  ggplot() +
+  geom_line(aes(x = n_each, y = mean_param_se, color = N)) +
+  xlab("") + 
+  ylab("") +
+  guides(color=guide_legend(title="Number of Subjects")) +
+  theme(legend.position = "none") +
+  ggtitle(param)
+    
+  return(fig)
+}
+fig11 = draw_figure(0, "beta_v_0") + theme(legend.position = "right")
+fig21 = draw_figure(1, "beta_v_0")+ ylab("average posterior sd")
+fig31 = draw_figure(2, "beta_v_0")
+fig22 = draw_figure(1, "beta_v_x1")
+fig32 = draw_figure(2, "beta_v_x1") + xlab("number of trials for each subject")
+fig33 = draw_figure(2, "beta_v_x2")
+library(patchwork)
+fig_all = (fig11+plot_spacer()+plot_spacer())/
+  (fig21+fig22+plot_spacer())/
+  (fig31+fig32+fig33)
+
+
+
+```
 
 
 
