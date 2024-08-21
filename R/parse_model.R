@@ -1,3 +1,4 @@
+#' A small function to format the model
 #' @keywords internal
 #' @noRd
 parse_model = function(model){

@@ -1,7 +1,4 @@
 #' format the two tables into a list required by rstan
-#'
-#'
-#'
 #' @keywords internal
 #' @noRd
 format_data = function(
@@ -14,9 +11,10 @@ format_data = function(
     y = data1$y,
     response = data2$response,
     rt = data2$rt,
-    id = data2$id
+    id = match(data2$id,data1$id)
   )
 
+  # deal with subject-level covariates, especially the ones with missing values
   for(cov in colnames(data1)){
     if(cov == "id" | cov == "y"){
       next
@@ -33,10 +31,9 @@ format_data = function(
     out_list[[paste0(cov, "_obs")]] = dplyr::pull(obs_rows, cov)
     out_list[[paste0("ii_obs_", cov)]] = dplyr::pull(obs_rows, id)
     out_list[[paste0("ii_mis_", cov)]] = dplyr::pull(mis_rows, id)
-
-
   }
 
+  # deal with trial-level data.
   for(xvar in colnames(data2)){
     if(xvar == "id" | xvar == "rt" | xvar == "response"){
       next

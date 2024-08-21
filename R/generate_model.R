@@ -1,13 +1,3 @@
-#' Somehow stan does not support : in variable names thus we have to replace it with _.
-#' @keywords internal
-#' @noRd
-replace_colon = function(var){
-  return(stringr::str_replace_all(var, ":", "_"))
-}
-
-
-
-
 #' This function generates a model specified by the user
 #' @keywords internal
 #' @noRd
@@ -26,10 +16,29 @@ generate_model = function(
 ){
   # this function writes to a file containing the stan model
   # currently only support gaussian, bernoulli and poisson distribution
-  if(!family %in% c("gaussian", "bernoulli", "poisson")){
+  # make sure the data type of y matches the distribution
+  if(family == "gaussian"){
+    if(!is.numeric(data1$y)){
+      stop(stringr::str_interp("for Gaussian family, 'y' must be numeric\n"))
+    }
+  }
+  else if(family == "bernoulli"){
+    for(each in data1$y){
+      if(!(each == 0 | each == 1)){
+        stop(stringr::str_interp("for Bernoulli family, 'y' must be either 1 or 0\n"))
+      }
+    }
+  }
+  else if(family == "poisson"){
+    for(each in data1$y){
+      if(as.integer(each) != each | each < 0){
+        stop(stringr::str_interp("for Poisson family, 'y' must be integers >=0\n"))
+      }
+    }
+  }
+  else {
     stop(stringr::str_interp("unsupported distribution family: ${family}\n"))
   }
-
 
 
   # summary the information for missing data (for data1 only)
@@ -56,11 +65,7 @@ generate_model = function(
     if(variable %in% c("id", "response", "rt")){
       next()
     }
-    if(
-      abs(mean(dplyr::pull(data2, variable), na.rm = TRUE))> 1 |
-      sd(dplyr::pull(data2, variable), na.rm = TRUE) > 2 |
-      sd(dplyr::pull(data2, variable), na.rm = TRUE) < 0.5
-    ){
+    if(!is_scaled(dplyr::pull(data2, variable))){
       unscaled_var_list = c(unscaled_var_list, variable)
     }
   }
@@ -85,12 +90,12 @@ generate_model = function(
     warning(paste0("variable: ", unscaled_var_list, "are not scaled. Default prior and constraints for ",disabled_ddm_prior, " are disabled. Be cautious about model convergence!"))
   }
 
-
   # internal function to append stan code to the model file
   add_script = function(str){
     str = stringr::str_interp(str)
     write(str, file = file_name, append = TRUE)
   }
+
 
   # creating a file and start writing
   write("// RegDDM generated stan model", file = file_name, append = FALSE)
@@ -439,6 +444,4 @@ generate_model = function(
   add_script("  }")
 
   add_script("}")
-
-  rstan::stanc(file_name)
 }

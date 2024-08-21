@@ -3,6 +3,7 @@
 ```{r}
 library(tidyverse)
 library(paletteer)
+library(patchwork)
 ```
 
 
@@ -58,10 +59,12 @@ dat %>%
 # Simulation2: performance under different setup
 ### computation time for each setup
 ```{r}
-dat = read_csv("simulation2.csv")
+dat = read_csv("simulation2.csv") %>%
+  filter(max_r_hat < 1.1, max_r_hat > 0.9) %>%
+  filter(N >20 | n_each >20) %>%
+  filter(beta_v_0_sd<3)
 
 dat %>%
-  filter(max_r_hat < 1.1, max_r_hat > 0.9) %>%
   group_by(N, n_each) %>%
   summarise(
     n = n(),
@@ -71,7 +74,7 @@ dat %>%
   ggplot() +
   geom_line(aes(x = n_each, y = time, color = N)) +
   xlab("number of trials per subject") + 
-  ylab("type-2 error rate") +
+  ylab("computation time (s)") +
   guides(color=guide_legend(title="Number of Subjects"))
 ```
 
@@ -101,14 +104,175 @@ fig31 = draw_figure(2, "beta_v_0")
 fig22 = draw_figure(1, "beta_v_x1")
 fig32 = draw_figure(2, "beta_v_x1") + xlab("number of trials for each subject")
 fig33 = draw_figure(2, "beta_v_x2")
-library(patchwork)
+
 fig_all = (fig11+plot_spacer()+plot_spacer())/
   (fig21+fig22+plot_spacer())/
   (fig31+fig32+fig33)
 
+fig_all
+
 
 
 ```
+
+
+```{r}
+dat = read_csv("simulation3.csv", na = c("", "NA", "NaN", "-Inf")) %>%
+  na.omit() %>%
+  filter(max_r_hat < 1.1, max_r_hat > 0.9) 
+
+fig1 = dat %>%
+  group_by(n_each, cont_level) %>%
+  summarise(
+    n = n(),
+    mse_v = mean(mse_v_0),
+    sd_beta_v_0 = mean(beta_v_0_sd)
+  ) %>%
+  mutate(cont_level = factor(cont_level)) %>%
+  ggplot() +
+  geom_line(aes(x = n_each, y = mse_v, color = cont_level)) +
+  xlab("number of trials per subject") + 
+  ylab("posterior standard deviation") +
+  ggtitle("v_0") +
+  theme(legend.position = "none") 
+  
+
+fig2 = dat %>%
+  group_by(n_each, cont_level) %>%
+  summarise(
+    n = n(),
+    mse_v = mean(mse_v_0),
+    sd_beta_v_0 = mean(beta_v_0_sd)
+  ) %>%
+  mutate(cont_level = factor(cont_level)) %>%
+  ggplot() +
+  geom_line(aes(x = n_each, y = sd_beta_v_0, color = cont_level)) +
+  xlab("number of trials per subject") + 
+  ylab("posterior standard deviation") +
+  ggtitle("beta_v_0") + 
+  guides(color=guide_legend(title="contaminant level"))
+
+fig1 +fig2
+
+```
+
+
+
+
+# application of RegDDM using real data
+```{r}
+library(RegDDM)
+
+data1 = read_csv("../test_data/CR_BL.csv")
+data1 = data1 %>%
+  janitor::clean_names() %>%
+  filter(subid>3999, age<40) %>%
+  select(subid, age, education, amnart_iq) %>%
+  unique() %>%
+  na.omit() %>%
+  arrange(subid)
+
+
+load("../test_data/CR_LetterSterberg_BehaviorData_2024_05_21.Rdat")
+
+data2 = cr.ls.dat %>%
+  mutate(
+    subid = as.integer(str_sub(subid, -4)),
+    memload = scale(memload)[,1]
+  ) %>%
+  select(subid, memload,resptime,accuracy) %>%
+  rename(rt = resptime, response = accuracy) %>%
+  mutate(response = ifelse(response == "Correct", 1, 0)) %>%
+  rename(id=subid)
+
+data1 = data1 %>%
+  filter(subid %in% unique(data2$subid)) %>%
+  mutate(id = subid,y = amnart_iq) %>%
+  select(id, y, age, education)
+
+data2 = 
+  right_join(data2, data1 %>%select(id)) %>%
+  select(id,memload,response,rt) %>%
+  na.omit() %>%
+  filter(rt > 0.1)
+
+data1 = data1 %>%
+  select(-subid)
+
+model = list(
+  v ~ memload,
+  y ~ age + education + v_0
+)
+
+fit = regddm(
+  data1,
+  data2,
+  model,
+  scale = FALSE,
+  warmup = 500,
+  iter = 1000
+)
+
+res = rstan::summary(fit)$summary %>% round(3)
+
+min(data2$rt)
+
+data2 %>%
+  arrange(rt)
+
+data2 %>%
+  group_by(id) %>%
+  summarise(n=n())
+```
+
+
+
+```{r}
+library(gtsummary)
+dat = read_csv("../test_data/CR_BL.csv") 
+dat = dat %>%
+  janitor::clean_names() %>%
+  filter(subid>3999, age<40) %>%
+  select(subid,age,gender,education,race,amnart_iq) %>%
+  unique() %>%
+  filter(subid %in% data1$subid)
+
+ttt= data2 %>%
+  group_by(id) %>%
+  summarise(
+    latency = mean(rt),
+    accuracy = mean(response)
+  ) %>%
+  select(-id) %>%
+  bind_cols(data1, .name_repair = "minimal")
+
+
+data2 %>%
+  group_by(id) %>%
+  summarise(
+    latency = mean(rt),
+    accuracy = mean(response)
+  ) %>%
+  tbl_summary(
+    statistic = list(all_continuous() ~ "{mean} ({sd})", all_categorical() ~ "{n} ({p}%)")
+  )
+
+
+dat %>%
+  mutate(education = as.numeric(education)) %>%
+  tbl_summary(
+    type = list(education ~ "continuous"),
+    statistic = list(all_continuous() ~ "{mean} ({sd})", all_categorical() ~ "{n} ({p}%)")
+  )
+```
+
+
+
+
+
+
+
+
 
 
 
