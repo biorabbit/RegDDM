@@ -24,11 +24,6 @@ First, load the package and the example dataset.
 
 ``` r
 library(RegDDM)
-#> 
-#> 载入程辑包：'RegDDM'
-#> The following object is masked from 'package:base':
-#> 
-#>     summary
 data(regddm_data)
 ```
 
@@ -80,31 +75,27 @@ parameters:
 fit = regddm(
   data1,
   data2,
-  model,
-  warmup = 300,
-  iter = 500
+  model
 )
-#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
-#> Running the chains for more iterations may help. See
-#> https://mc-stan.org/misc/warnings.html#bulk-ess
-#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
-#> Running the chains for more iterations may help. See
-#> https://mc-stan.org/misc/warnings.html#tail-ess
 #> # A tibble: 6 × 6
-#>   variable       se_mean     sd   `75%` `97.5%` n_eff
+#>   variable          mean     sd  `2.5%` `97.5%`  Rhat
 #>   <chr>            <dbl>  <dbl>   <dbl>   <dbl> <dbl>
-#> 1 beta_0          0.441  12.8   110.    126.     847.
-#> 2 beta_v_0        0.0959  2.59   -3.87   -0.143  729.
-#> 3 beta_v_memload  0.315   7.99  -12.9    -0.504  646.
-#> 4 beta_age        0.0110  0.383   0.613   1.07  1205.
-#> 5 beta_education  0.0200  0.596   1.03    1.80   886.
-#> 6 sigma_y         0.0313  0.870   7.43    8.75   774.
+#> 1 beta_0         101.    11.9    76.3   125.     1.00
+#> 2 beta_v_0        -5.50   2.59  -10.4    -0.285  1.00
+#> 3 beta_v_memload -17.8    8.34  -34.4    -1.13   1.00
+#> 4 beta_age         0.339  0.360  -0.372   1.06   1.00
+#> 5 beta_education   0.639  0.599  -0.533   1.79   1.00
+#> 6 sigma_y          6.86   0.881   5.36    8.77   1.00
 ```
 
-Based on the result, increasing memory load by one standard deviation
-will decrease the drift rate by around 0.431. The more ”negative” such
-influence is, the lower the IQ of the subject. In other words, subjects
-with lower IQ are more susceptible to increased memory load.
+In general, higher drift rate will lead to faster and more accurate
+decision making. Increasing memory load has a negative influence on
+drift rate, which differs by subjects. Based on the result, The more
+”negative” such influence is, the lower the IQ of the subject.
+Meanwhile, when experiment condition is neutral, the higher the IQ, the
+smaller the drift rate. In other words, subjects with lower IQ are more
+susceptible to increased memory load, but they perform better at
+moderate difficulty.
 
 # Using your own data!
 

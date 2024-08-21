@@ -160,7 +160,7 @@ regddm = function(
 
   # print the useful information
   print(
-    output$glm_coefficiets[,c(1,3,4,8,9,10)]
+    output$glm_coefficiets[,c(1,2,4,5,9,11)]
   )
 
   return(output)

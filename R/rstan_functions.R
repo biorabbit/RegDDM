@@ -8,7 +8,7 @@ traceplot = function(object, ...){
 
 #' @importFrom rstan summary
 #' @export
-summary = function(object, ...){
+rstan_summary = function(object, ...){
   return(rstan::summary(object$stan_fit, ...))
 }
 
