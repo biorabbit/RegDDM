@@ -1,6 +1,6 @@
-#' This function generates a fake dataset using easyRT
-#'
-#'
+#' This function generates a fake dataset under different configurations
+#' It can be used to test the performance of RegDDM under different conditions.
+#' It is also used in testing the functionality of the package
 #'
 #'
 #' @export

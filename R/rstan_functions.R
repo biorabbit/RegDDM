@@ -1,12 +1,17 @@
 #' @importFrom rstan traceplot
 #' @inherit rstan::traceplot
 #' @export
-traceplot = rstan::traceplot
+traceplot = function(object, ...){
+  return(rstan::traceplot(object$stan_fit, ...))
+}
 
-#' @importFrom rstan check_hmc_diagnostics
-#' @export
-check_hmc_diagnostics = rstan::check_hmc_diagnostics
 
 #' @importFrom rstan summary
 #' @export
-summary = rstan::summary
+summary = function(object, ...){
+  return(rstan::summary(object$stan_fit, ...))
+}
+
+
+
+

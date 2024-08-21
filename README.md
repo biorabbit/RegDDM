@@ -11,7 +11,8 @@ MCMC!
 
 ## Installation
 
-You can install latest version of RegDDM using Github:
+You can install latest version of RegDDM using Github. The package will
+later be available on CRAN.
 
 ``` r
 remotes::install_github("biorabbit/RegDDM")
@@ -19,92 +20,91 @@ remotes::install_github("biorabbit/RegDDM")
 
 ## Example
 
-First, load the demo data which contains 10 subjects and 100 trials for
-each subject. This yeilds 2 separate tables. `data1` contains
-subject-level variables and `data2` contains trial-level variables.
+First, load the package and the example dataset.
 
 ``` r
 library(RegDDM)
+#> 
+#> 载入程辑包：'RegDDM'
+#> The following object is masked from 'package:base':
+#> 
+#>     summary
+data(regddm_data)
 ```
 
-Alternatively, you can generate some other fake data using the
-`generate_fake_data()` function, which gives you the flexibility to test
-the models.
+`data1` is the subject-level dataset with 49 rows and 4 columns:
 
 ``` r
-fake_data = generate_fake_data()
-data1 = fake_data[["data1"]]
-data2 = fake_data[["data2"]]
+head(regddm_data$data1)
+#>     id      y age education
+#> 1 4200 103.84  25        13
+#> 2 4203 114.96  23        14
+#> 3 4206 120.48  26        16
+#> 4 4221 116.96  25        16
+#> 5 4231 113.20  26        14
+#> 6 4233 121.36  30        16
 ```
 
-Specify the model using a list. In this demo, we assume the drift rate
-`v` is linearly determined by two trial-level variables `x1` and `x2`.
-The outcome `y` is influenced by how sensitivity the subject is to `x1`
-and `x2`, as well as two covariates `c1` and `c2`:
+`data2` is the subject-level dataset with 6032 rows and 4 columns:
+
+``` r
+head(regddm_data$data2)
+#>     id memload response    rt
+#> 1 4200       3        1 0.985
+#> 2 4200       6        1 0.829
+#> 3 4200       1        1 0.901
+#> 4 4200       6        1 1.237
+#> 5 4200       6        1 1.163
+#> 6 4200       6        1 0.799
+```
+
+Specify the model using a list. In this example, we want to study how
+the memory load of the trial (`memload` variable) influences the drift
+rate v for each subject differently, and how such influence correlates
+with the IQ of the subject (`y` variable). Thus, the following model is
+built:
 
 ``` r
 model = list(
-  v ~ x1 + x2,
-  y ~ v_x1 + v_x2 + c1 + c2
+  v ~ memload,
+  y ~ v_0 + v_memload + age + education
 )
 ```
 
 Use the main function to automatically generate the stan model and
-summary the results. This could take ~10 minutes to run. Some warnings
-may pop out depending on model convergence, which can be helped by
-increasing iterations. The rows starting with ‘beta\_’ are the posterior
-distributions of regression parameters:
+summary the results. This could take ~20 minutes to run. The rows
+starting with ‘beta\_’ are the posterior distributions of regression
+parameters:
 
 ``` r
 fit = regddm(
   data1,
   data2,
-  model = model,
-  family = "gaussian",
-  scale = FALSE,
-  warmup = 500,
-  iter = 700
+  model,
+  warmup = 300,
+  iter = 500
 )
-
-
-round(rstan::summary(fit)$summary, 3)[1:6, c(1,3,4,8,9,10)]
-#>             mean    sd   2.5%  97.5%   n_eff  Rhat
-#> beta_0    -0.019 0.839 -1.607  0.880  45.169 1.074
-#> beta_v_x1  1.052 1.017 -0.051  2.957  40.073 1.086
-#> beta_v_x2 -0.127 0.461 -1.005  0.891  97.702 1.020
-#> beta_c1   -1.026 0.173 -1.306 -0.716 323.395 1.005
-#> beta_c2    0.132 0.099 -0.073  0.332 364.489 1.002
-#> sigma_y    0.210 0.247  0.039  0.647  58.069 1.055
+#> Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+#> Running the chains for more iterations may help. See
+#> https://mc-stan.org/misc/warnings.html#bulk-ess
+#> Warning: Tail Effective Samples Size (ESS) is too low, indicating posterior variances and tail quantiles may be unreliable.
+#> Running the chains for more iterations may help. See
+#> https://mc-stan.org/misc/warnings.html#tail-ess
+#> # A tibble: 6 × 6
+#>   variable       se_mean     sd   `75%` `97.5%` n_eff
+#>   <chr>            <dbl>  <dbl>   <dbl>   <dbl> <dbl>
+#> 1 beta_0          0.441  12.8   110.    126.     847.
+#> 2 beta_v_0        0.0959  2.59   -3.87   -0.143  729.
+#> 3 beta_v_memload  0.315   7.99  -12.9    -0.504  646.
+#> 4 beta_age        0.0110  0.383   0.613   1.07  1205.
+#> 5 beta_education  0.0200  0.596   1.03    1.80   886.
+#> 6 sigma_y         0.0313  0.870   7.43    8.75   774.
 ```
 
-Comparing with a liner model using the true sensitivity:
-
-``` r
-summary(lm(y ~ v_x1 + v_x2 + c1 + c2, data = fake_data[["data1_true"]]))
-#> 
-#> Call:
-#> lm(formula = y ~ v_x1 + v_x2 + c1 + c2, data = fake_data[["data1_true"]])
-#> 
-#> Residuals:
-#>        1        2        3        4        5        6        7        8 
-#> -0.02469  0.04263 -0.01908  0.09315 -0.01233 -0.10934  0.12474 -0.03710 
-#>        9       10 
-#> -0.02976 -0.02824 
-#> 
-#> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)  0.11060    0.10552   1.048  0.34259    
-#> v_x1         1.06778    0.16878   6.326  0.00145 ** 
-#> v_x2         0.03067    0.14810   0.207  0.84412    
-#> c1          -0.97797    0.03704 -26.402 1.46e-06 ***
-#> c2           0.05609    0.03691   1.520  0.18904    
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> Residual standard error: 0.09186 on 5 degrees of freedom
-#> Multiple R-squared:  0.9939, Adjusted R-squared:  0.989 
-#> F-statistic: 203.5 on 4 and 5 DF,  p-value: 1.015e-05
-```
+Based on the result, increasing memory load by one standard deviation
+will decrease the drift rate by around 0.431. The more ”negative” such
+influence is, the lower the IQ of the subject. In other words, subjects
+with lower IQ are more susceptible to increased memory load.
 
 # Using your own data!
 
@@ -112,19 +112,20 @@ If you want to fit the model on your own data, you need to specify
 `data1`, `data2` and `model`.
 
 `data1` is subject-level data table. It should contain the following: \*
-`id`: consecutive positive integers starting from 1. If you index the
-subjects differently, consider putting your old index in a covariate
-column. \* `y`: outcome. Currently RegDDM only support linear model. \*
-other covariates that we want to adjust for.
+`id`: unique indexing column for each subject. \* `y`: primary outcome.
+\* other covariates that we want to adjust for. These covariates could
+contain some missing values. However,if there are too many missing
+values, the model may fail to converge.
 
 `data2` is trial-level data table. It should contain the following: \*
-`id`: the subject of each trial. must be one of `id` in `data1`. \*
-`rt`: response time of the trial. must be positive real number \*
-\`response\`\`: response the trial. must be either 0 or 1. Typically, 1
-stands for acceptance. \* trial-level variables. These are the variables
-that differs by trial, such as difficulty of the task or different
-numbers on the screen. We assume that subjects’ behavior changes
-according to these variables.
+`id`: the subject of each trial using the same index in `data1`. All
+subjects must have a trial and all trials must have a subject. \* `rt`:
+response time of the trial in seconds. \* \`response\`\`: response the
+trial. must be either 0 or 1. \* trial-level variables. These are the
+variables that differ by trial, such as difficulty of the task or
+different numbers on the screen. We assume that subjects’ behavior
+changes according to these variables. These variables cannot contain
+missing values.
 
 `model` is the proposed dependency between these parameters. It must be
 a list containing several formulas, such as `v ~ x1 * x2` \* `a`, `t`,
@@ -135,7 +136,7 @@ example `v_x1` for main effect and `v_x1_x2` for interaction term.
 
 `family` is the family of distribution of outcome `y`, similar to ones
 in generalized linear model. It can take either `gaussian`, `bernoulli`
-or `poisson`. Only canonical link function is used in RegDDM.
+or `poisson`. Canonical link function is used in RegDDM.
 
 `ddm_link` specifies the relationship between DDM parameters of each
 trial and trial-level parameters. By default,
@@ -149,4 +150,17 @@ trial and trial-level parameters. By default,
   )
 ```
 
-`init` how to initialize the MCMC algorithm `scale`
+`init` how to initialize the MCMC algorithm. The `"default"`
+initialization should work in most conditions
+
+`scale` whether to scale the trial-level variables in `data2` or not. If
+these variables are not scaled, the default prior distribution and
+constraints will be disabled.
+
+`stan_filename` the file loaction for the automatically generated stan
+model. If an empty string ’’ is provided, a temporary file will be
+created and deleted after the model is fit.
+
+# Citation
+
+to be added

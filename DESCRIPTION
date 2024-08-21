@@ -21,17 +21,10 @@ Imports:
     purrr,
     rtdists,
     broom,
+    rlang,
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-Collate: 
-  'utils.R'
-  'RegDDM.R'
-  'check_error.R'
-  'data.R'
-  'format_data.R'
-  'generate_default_initialization.R'
-  'generate_fake_data.R'
-  'generate_model.R'
-  'parse_model.R'
-  'rstan_functions.R'
+Depends: 
+    R (>= 2.10)
+LazyData: true

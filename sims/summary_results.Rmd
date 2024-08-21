@@ -170,15 +170,15 @@ data1 = data1 %>%
   select(subid, age, education, amnart_iq) %>%
   unique() %>%
   na.omit() %>%
-  arrange(subid)
+  arrange(subid) %>%
+  rename(id=subid)
 
 
 load("../test_data/CR_LetterSterberg_BehaviorData_2024_05_21.Rdat")
 
 data2 = cr.ls.dat %>%
   mutate(
-    subid = as.integer(str_sub(subid, -4)),
-    memload = scale(memload)[,1]
+    subid = as.integer(str_sub(subid, -4))
   ) %>%
   select(subid, memload,resptime,accuracy) %>%
   rename(rt = resptime, response = accuracy) %>%
@@ -186,8 +186,8 @@ data2 = cr.ls.dat %>%
   rename(id=subid)
 
 data1 = data1 %>%
-  filter(subid %in% unique(data2$subid)) %>%
-  mutate(id = subid,y = amnart_iq) %>%
+  filter(id %in% unique(data2$id)) %>%
+  mutate(y = amnart_iq) %>%
   select(id, y, age, education)
 
 data2 = 
@@ -196,8 +196,7 @@ data2 =
   na.omit() %>%
   filter(rt > 0.1)
 
-data1 = data1 %>%
-  select(-subid)
+
 
 model = list(
   v ~ memload,

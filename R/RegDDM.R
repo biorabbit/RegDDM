@@ -25,17 +25,20 @@
 #' @references reference
 #'
 #' @examples
-#' # example code
-#' fake_data = generate_fake_data()
-#' model = list(v ~ x1 + x2, y ~ v_x1 + v_x2)
+#' ## Not run:
+#' # example analysis of Cognitive Reserve Study dataset.
+#' data(regddm_data)
+#' data1 = regddm_data$data1
+#' data2 = regddm_data$data2
+#' model = list(v ~ memload, y ~ v_0 + v_memload + age + education)
 #' fit = regddm(
-#'   fake_data[["data1"]],
-#'   fake_data[["data2"]],
+#'   regddm_data$data1,
+#'   regddm_data$data2,
 #'   model,
-#'   warmup = 200,
-#'   iter = 300
+#'   warmup = 500,
+#'   iter = 1000
 #' )
-#' summary(fit)$summary
+#' ## End(Not run)
 regddm = function(
     data1,
     data2,
@@ -46,7 +49,7 @@ regddm = function(
     scale = TRUE,
     stan_filename = "stan_model.stan",
     fit_model = TRUE,
-    warmup = 700,
+    warmup = 500,
     iter = 1000,
     chains = 4,
     cores = 4,
@@ -152,25 +155,12 @@ regddm = function(
   )
 
   # present the results in a better format
-  res = rstan::summary(fit)
+  output = summary_results(fit, model, data1)
 
-  output = list(
-    beta = NA, # glm regression parameters
-    sigma_y = NA, # standard deviation of error term in glm.
-    subject_ddm = NA, # ddm parameters of each subject
-    group_ddm = NA, # group mean and SD of DDM parameters
-    missing_value = NA, # estimated missing covariates
-    group_covariates = NA, # group mean and sd of covariates
-    max_r_hat = NA,
-    model = model,
-    stan_fit = fit # additional information can be found from the original stan model.
-  )
 
   # print the useful information
   print(
-    list(
-      GLM_coefficients = NA
-    )
+    output$glm_coefficiets[,c(1,3,4,8,9,10)]
   )
 
   return(output)

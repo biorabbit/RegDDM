@@ -2,20 +2,55 @@
 % Please edit documentation in R/RegDDM.R
 \name{regddm}
 \alias{regddm}
-\title{Main function of RegDDM}
+\title{Bayesian hierachical generalized linear regression using Drift-Diffusion Model}
 \usage{
-regddm(
-  data1,
-  data2,
-  model = default_model,
-  init = "default",
-  scale = FALSE,
-  chains = 4,
-  cores = 4,
-  thin = 1,
-  ...
-)
+regddm(data1, data2, model, family = 'gaussian', ddm_link = "default", init = "default", scale = TRUE, ...)
+}
+\arguments{
+\item{data1}{subject-level dataframe. It must contain two columns: \code{id} and \code{y}.}
+
+\item{data2}{trial-level dataframe. It must contain three columns: \code{id}, \code{response} and \code{rt}.}
+
+\item{model}{a list containing 1-5 formulas, specifying the dependence structure between variables.}
+
+\item{family}{family of distribution of \code{y}. Can be \code{gaussian}, \code{bernoulli} or \code{poisson}.}
+
+\item{ddm_link}{either \code{default}, \code{ident} or a named list of strings specifying the structure}
+
+\item{init}{either \code{default} or other values supported by rstan (see rstan documentation)}
+
+\item{scale}{a losigtic value, specifying weather or not to scale trial-level variables in \code{data2}}
+
+\item{stan_filename}{a string specifying the automatically generated stan file name.
+if an empty string \code{''} is provided, a temporary file will be created and deleted after the model is fit.}
+
+\item{fit_model}{a logistic value indicating weather or not to fit the model.
+If not, RegDDM will only generate the code and return the data input for stan.}
+
+\item{...}{other parameters sent to rstan package.}
 }
 \description{
-Main function of RegDDM
+Use
+}
+\details{
+Additional details...
+}
+\examples{
+## Not run:
+# example analysis of Cognitive Reserve Study dataset.
+data(regddm_data)
+data1 = regddm_data$data1
+data2 = regddm_data$data2
+model = list(v ~ memload, y ~ v_0 + v_memload + age + education)
+fit = regddm(
+  regddm_data$data1,
+  regddm_data$data2,
+  model,
+  warmup = 500,
+  iter = 1000
+)
+## End(Not run)
+}
+\references{
+reference
 }

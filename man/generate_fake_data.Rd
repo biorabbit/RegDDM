@@ -2,7 +2,9 @@
 % Please edit documentation in R/generate_fake_data.R
 \name{generate_fake_data}
 \alias{generate_fake_data}
-\title{This function generates a fake dataset using easyRT}
+\title{This function generates a fake dataset under different configurations
+It can be used to test the performance of RegDDM under different conditions.
+It is also used in testing the functionality of the package}
 \usage{
 generate_fake_data(
   N = 10,
@@ -16,5 +18,7 @@ generate_fake_data(
 )
 }
 \description{
-This function generates a fake dataset using easyRT
+This function generates a fake dataset under different configurations
+It can be used to test the performance of RegDDM under different conditions.
+It is also used in testing the functionality of the package
 }
