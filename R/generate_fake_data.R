@@ -47,7 +47,7 @@ generate_fake_data <- function(
     data1_true = dplyr::mutate(
       data1_true,
       p = rep(beta_0, N) + beta_c1*c1 + beta_c2*c2 + beta_v_0*v_0 + beta_v_x1*v_x1 + beta_v_x2*v_x2,
-      p = 1/(1+exp(p)),
+      p = 1/(1+exp(-p)),
       random_number = runif(N),
       y = ifelse(random_number < p, 1, 0)
     )
