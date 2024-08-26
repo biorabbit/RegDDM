@@ -82,7 +82,7 @@ simulate_experiment = function(
   summary_stat = stringr::str_c(
     N,
     n_each,
-    time_taken["elapsed"],
+    0,
     max(as.data.frame(rstan::summary(fit$stan_fit)$summary)$Rhat),
     max(as.data.frame(rstan::summary(fit_2step$stan_fit)$summary)$Rhat),
     mean((fit$subject_ddm_param$mean$v_x1 - fake_data$data1_true$v_x1)^2),
