@@ -10,7 +10,7 @@ n_each = 30
 simulate_experiment = function(
     N, # number of subjects
     n_each, # number of trials for each subject
-    out_file, # which .csv file to append the simulate results.
+    out_file # which .csv file to append the simulate results.
 ){
   fake_data = RegDDM::generate_fake_data(
     N = N,
