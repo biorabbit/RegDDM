@@ -5,8 +5,9 @@
 # between RegDDM and 2-step approaches, as well as MSE for ddm parameter estimates.
 # Each simulates an experiment with two trial-level variables.
 # One of them is related to y, the other one is not.
-N = 30
-n_each = 30
+N = 20
+n_each = 20
+out_file = "test1.csv"
 simulate_experiment = function(
     N, # number of subjects
     n_each, # number of trials for each subject
@@ -18,18 +19,18 @@ simulate_experiment = function(
     beta_c1 = 0,
     beta_c2 = 0,
     beta_v_0 = 0,
-    beta_v_x1 = 1,
+    beta_v_x1 = 0,
     beta_v_x2 = 0,
     sigma_y = 1,
     sigma_v = 0,
-    n_xvar = 2,
+    n_xvar = 1,
     n_each = n_each,
     y_family = "gaussian"
   )
 
   model = list(
-    v ~ x1 + x2,
-    y ~ v_x1 + v_x2
+    v ~ x1,
+    y ~ v_x1
   )
 
   fit = RegDDM::regddm(
@@ -38,11 +39,11 @@ simulate_experiment = function(
     model,
     stan_filename = "",
     warmup = 500,
-    iter = 1000
+    iter = 1500
   )
 
   model_2step = list(
-    v~ x1 + x2,
+    v~ x1,
     y ~ 1
   )
 
@@ -52,7 +53,7 @@ simulate_experiment = function(
     model_2step,
     stan_filename = "",
     warmup = 500,
-    iter = 1000
+    iter = 1500
   )
 
 
@@ -65,17 +66,17 @@ simulate_experiment = function(
   )
 
   res_2step = broom::tidy(
-    lm(y ~ v_x1 + v_x2, lm_data),conf.int = TRUE, conf.level = 0.95
+    lm(y ~ v_x1, lm_data),conf.int = TRUE, conf.level = 0.95
   )
 
   # this is temporary code
-  lm_data = dplyr::mutate(
+  lm_data2 = dplyr::mutate(
     fit$subject_ddm_param$mean,
     y = fake_data[["data1"]][["y"]]
   )
 
   res_2step2 = broom::tidy(
-    lm(y ~ v_x1 + v_x2, lm_data),conf.int = TRUE, conf.level = 0.95
+    lm(y ~ v_x1, lm_data2),conf.int = TRUE, conf.level = 0.95
   )
 
 
@@ -89,9 +90,9 @@ simulate_experiment = function(
     max(as.data.frame(rstan::summary(fit_2step$stan_fit)$summary)$Rhat),
     mean((fit$subject_ddm_param$mean$v_x1 - fake_data$data1_true$v_x1)^2),
     mean((fit_2step$subject_ddm_param$mean$v_x1 - fake_data$data1_true$v_x1)^2),
-    ifelse(res$`2.5%`[3]*res$`97.5%`[3] > 0, 1, 0),
-    ifelse(res_2step$`conf.low`[3]*res_2step$`conf.high`[3] > 0, 1, 0),
-    ifelse(res_2step2$`conf.low`[3]*res_2step2$`conf.high`[3] > 0, 1, 0),
+    ifelse(res$`2.5%`[2]*res$`97.5%`[2] > 0, 1, 0),
+    ifelse(res_2step$`conf.low`[2]*res_2step$`conf.high`[2] > 0, 1, 0),
+    ifelse(res_2step2$`conf.low`[2]*res_2step2$`conf.high`[2] > 0, 1, 0),
     sep = ","
   )
 
