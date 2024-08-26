@@ -97,6 +97,16 @@ simulate_experiment = function(
 
 }
 
+args <- commandArgs(trailingOnly = TRUE)
+
+for(i in 1:as.numeric(args[4])){
+  simulate_experiment(
+    as.numeric(args[1]),
+    as.numeric(args[2]),
+    args[3]
+  )
+}
+
 
 "
 N, n_each, time_taken, max_rhat_1, max_rhat_2, mse_v_x1_1, mse_v_x1_2, sig_regddm, sig_2step, sig_2step_2,
