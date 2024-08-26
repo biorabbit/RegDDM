@@ -139,10 +139,6 @@ regddm = function(
 
   stan_model <- stan_filename
 
-  if(delete_flag){
-    file.remove(stan_filename)
-  }
-
   fit <- rstan::stan(
     file = stan_model,
     data = stan_data,
@@ -153,6 +149,10 @@ regddm = function(
     cores = cores,
     ...
   )
+
+  if(delete_flag){
+    file.remove(stan_filename)
+  }
 
   # present the results in a better format
   output = summary_results(fit, model, data1)
