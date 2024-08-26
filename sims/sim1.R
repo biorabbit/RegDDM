@@ -36,6 +36,7 @@ simulate_experiment = function(
     fake_data[["data1"]],
     fake_data[["data2"]],
     model,
+    stan_filename = "",
     warmup = 500,
     iter = 1000
   )
@@ -49,6 +50,7 @@ simulate_experiment = function(
     fake_data[["data1"]],
     fake_data[["data2"]],
     model_2step,
+    stan_filename = "",
     warmup = 500,
     iter = 1000
   )
