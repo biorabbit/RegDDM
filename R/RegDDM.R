@@ -10,7 +10,7 @@
 #' @param family family of distribution of `y`. Can be `gaussian`, `bernoulli` or `poisson`.
 #' @param ddm_link either `default`, `ident` or a named list of strings specifying the structure
 #' @param init either `default` or other values supported by rstan (see rstan documentation)
-#' @param scale a losigtic value, specifying weather or not to scale trial-level variables in `data2`
+#' @param prior a losigtic value, specifying whether or not to use default prior for DDM parameters where default is TRUE. Improper use of prior distribution may influence model validity.
 #' @param stan_filename a string specifying the automatically generated stan file name.
 #'        if an empty string `''` is provided, a temporary file will be created and deleted after the model is fit.
 #' @param fit_model a logistic value indicating weather or not to fit the model.
@@ -46,7 +46,7 @@ regddm = function(
     family = "gaussian",
     ddm_link = "default",
     init = "default",
-    scale = TRUE,
+    prior = TRUE,
     stan_filename = "stan_model.stan",
     fit_model = TRUE,
     warmup = 500,
@@ -58,31 +58,19 @@ regddm = function(
 
 
   # trial-level variables and subject-level covariates
-  xvar = colnames(data2)
-  xvar = xvar[!xvar %in% c("id", "response", "rt")]
-  cvar = colnames(data1)
-  cvar = cvar[!cvar %in% c("id", "y")]
-
-  if(scale)(
-    # scale trial-level variables to implement prior distribution and constraints
-    for(x in xvar){
-      data2[[x]] = scale(data2[[x]])[,1]
-    }
-
-    # subject-level covariates does not necessarily need to be scaled.
-    # for(c in cvar){
-    #   data1[[c]] = scale(data1[[c]])[,1]
-    # }
-  )
+  #xvar = colnames(data2)
+  #xvar = xvar[!xvar %in% c("id", "response", "rt")]
+  #cvar = colnames(data1)
+  #cvar = cvar[!cvar %in% c("id", "y")]
 
   # check for errors in the data
   check_data(data1, data2)
 
   # parse the model into better formats.
-  model = parse_model(model)
+  model = parse_model(model, data1, data2)
 
   # check for errors in the model
-  check_model(xvar, cvar, model)
+  #check_model(xvar, cvar, model)
 
   # format the data into a list required by rstan
   stan_data = format_data(data1, data2)
@@ -114,11 +102,10 @@ regddm = function(
 
   # automatically generate the stan model
   generate_model(
-    xvar,
-    cvar,
+    stan_data,
     data1,
-    data2,
     model,
+    prior,
     ddm_link,
     family,
     stan_filename
@@ -141,7 +128,7 @@ regddm = function(
 
   fit <- rstan::stan(
     file = stan_model,
-    data = stan_data,
+    data = stan_data$data,
     init = init,
     warmup = warmup,
     iter = iter,

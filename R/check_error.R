@@ -64,7 +64,7 @@ check_data = function(
     warning("Some trials has response time(rt) less than 0.1s. Did your subjects make proper decision?\n")
   }
   if(min(data2$rt) > 10){
-    warning("Some trials has response time(rt) greater than 10s. Please note that the unit is in seconds.\n")
+    warning("Some trials has response time(rt) greater than 10s. The unit should be in seconds.\n")
   }
 
   for(id in unique(data2$id)){

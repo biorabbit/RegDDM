@@ -3,12 +3,10 @@
 #' @noRd
 #'
 generate_model = function(
-    x_names,
-    c_names,
+    stan_data,
     data1,
-    data2,
     model,
-    #N,
+    prior,
     ddm_link,
     # rt_limits, # this is ugly but we need to specify the upper limit of reaction time for each subject (no longer needed)
     family,
@@ -16,21 +14,26 @@ generate_model = function(
 ){
   # this function writes to a file containing the stan model
   # currently only support gaussian, bernoulli and poisson distribution
+
+  x_names = stan_data$x_names
+  c_names = stan_data$c_names
+  stan_data = stan_data$data
+
   # make sure the data type of y matches the distribution
   if(family == "gaussian"){
-    if(!is.numeric(data1$y)){
+    if(!is.numeric(stan_data$y)){
       stop(stringr::str_interp("for Gaussian family, 'y' must be numeric\n"))
     }
   }
   else if(family == "bernoulli"){
-    for(each in data1$y){
+    for(each in stan_data$y){
       if(!(each == 0 | each == 1)){
         stop(stringr::str_interp("for Bernoulli family, 'y' must be either 1 or 0\n"))
       }
     }
   }
   else if(family == "poisson"){
-    for(each in data1$y){
+    for(each in stan_data$y){
       if(as.integer(each) != each | each < 0){
         stop(stringr::str_interp("for Poisson family, 'y' must be integers >=0\n"))
       }
@@ -44,7 +47,7 @@ generate_model = function(
   # summary the information for missing data (for data1 only)
   missing_info = list()
   for(c_name in c_names){
-    dat = dplyr::arrange(data1,id)[[c_name]]
+    dat = data1[[c_name]]
     dat_unique = unique(dat)
     n_mis = sum(is.na(dat))
     n_obs = length(dat) - sum(is.na(dat))
@@ -52,43 +55,55 @@ generate_model = function(
       n_mis = n_mis,
       n_obs = n_obs,
       iid_mis = which(is.na(dat)),
-      iid_obs = which(!is.na(dat)),
-      mean_hat = mean(dat, na.rm = TRUE),
-      sd_hat = sqrt(var(dat, na.rm = TRUE)*n_obs/(n_obs-1)),
-      is_binary = identical(sort(dat_unique), c(0,1))
+      iid_obs = which(!is.na(dat))
+      #mean_hat = mean(dat, na.rm = TRUE),
+      #sd_hat = sqrt(var(dat, na.rm = TRUE)*n_obs/(n_obs-1)),
+      #is_binary = identical(sort(dat_unique), c(0,1))
     )
   }
 
   # summary the unscaled trial-level variables and disable the corresponding ddm parameters
-  unscaled_var_list = c()
-  for(variable in colnames(data2)){
-    if(variable %in% c("id", "response", "rt")){
-      next()
-    }
-    if(!is_scaled(dplyr::pull(data2, variable))){
-      unscaled_var_list = c(unscaled_var_list, variable)
-    }
-  }
+  # unscaled_var_list = c()
+  # for(variable in colnames(data2)){
+  #   if(variable %in% c("id", "response", "rt")){
+  #     next()
+  #   }
+  #   if(!is_scaled(dplyr::pull(data2, variable))){
+  #     unscaled_var_list = c(unscaled_var_list, variable)
+  #   }
+  # }
+  #default_ddm_constraints = list(a = "<lower = 0>", t = "<lower = 0.01>", z = "<lower = 0.01, upper = 0.99>", v = "")
+  #default_ddm_priors = list(a = TRUE, t = TRUE, z = TRUE, v = TRUE)
+  # disabled_ddm_prior = c()
+  # for(param in c("a", "z", "t", "v")){
+  #   variables = rownames(attr(terms(model[[param]]), "factors"))
+  #   for(term in variables){
+  #     if(term == param){
+  #       next
+  #     }
+  #     if(term %in% unscaled_var_list){
+  #       default_ddm_constraints[[param]] = ""
+  #       default_ddm_priors[[param]] = FALSE
+  #       disabled_ddm_prior = c(disabled_ddm_prior, param)
+  #     }
+  #   }
+  # }
   default_ddm_constraints = list(a = "<lower = 0>", t = "<lower = 0.01>", z = "<lower = 0.01, upper = 0.99>", v = "")
   default_ddm_priors = list(a = TRUE, t = TRUE, z = TRUE, v = TRUE)
-  disabled_ddm_prior = c()
-  for(param in c("a", "z", "t", "v")){
-    variables = rownames(attr(terms(model[[param]]), "factors"))
-    for(term in variables){
-      if(term == param){
-        next
-      }
-      if(term %in% unscaled_var_list){
+  if(!prior){
+    for(param in c("a","t","z","v")){
+      if(length(attr(terms(model[[param]]), "term.labels")) == 0){
         default_ddm_constraints[[param]] = ""
         default_ddm_priors[[param]] = FALSE
-        disabled_ddm_prior = c(disabled_ddm_prior, param)
       }
     }
   }
 
-  if(length(unscaled_var_list) >0 & FALSE %in% default_ddm_priors){
-    warning(paste0("variable: ", unscaled_var_list, "are not scaled. Default prior and constraints for ",disabled_ddm_prior, " are disabled. Be cautious about model convergence!"))
-  }
+
+
+  #if(length(unscaled_var_list) >0 & FALSE %in% default_ddm_priors){
+  #  warning(paste0("variable: ", unscaled_var_list, "are not scaled. Default prior and constraints for ",disabled_ddm_prior, " are disabled. Be cautious about model convergence!"))
+  #}
 
   # internal function to append stan code to the model file
   add_script = function(str){
@@ -120,12 +135,13 @@ generate_model = function(
   add_script("")
   add_script("  // subject level covariates")
   for(c_name in c_names){
-    if(missing_info[[c_name]][['is_binary']] == 1){
-      data_type = "int<lower = 0, upper = 1>"
-    }
-    else{
-      data_type = "real"
-    }
+    #if(missing_info[[c_name]][['is_binary']] == 1){
+    #  data_type = "int<lower = 0, upper = 1>"
+    #}
+    #else{
+    #  data_type = "real"
+    #}
+    data_type = "real"
     if(missing_info[[c_name]][['n_mis']] == 0){
       add_script("  ${data_type} ${c_name}[N];")
       next
@@ -193,9 +209,9 @@ generate_model = function(
     if(missing_info[[c_name]][['n_mis']] == 0){
       next
     }
-    if(missing_info[[c_name]][['is_binary']] == 1){
-      add_script("  real p_${c_name};")
-    }
+    #if(missing_info[[c_name]][['is_binary']] == 1){
+    #  add_script("  real p_${c_name};")
+    #}
     else{
       add_script("  real u_${c_name};")
       add_script("  real<lower = 0> sig_${c_name};")
@@ -252,12 +268,13 @@ generate_model = function(
     if(missing_info[[c_name]][['n_mis']] == 0){
       next
     }
-    if(missing_info[[c_name]][['is_binary']] == 1){
-      data_type = "int<lower = 0, upper = 1>"
-    }
-    else{
-      data_type = "real"
-    }
+    #if(missing_info[[c_name]][['is_binary']] == 1){
+    #  data_type = "int<lower = 0, upper = 1>"
+    #}
+    #else{
+    #  data_type = "real"
+    #}
+    data_type = "real"
     if(missing_info[[c_name]][['n_mis']] == 1){
       add_script("  ${data_type} ${c_name}_mis;")
     }
@@ -298,12 +315,13 @@ generate_model = function(
     if(missing_info[[c_name]][['n_mis']] == 0){
       next
     }
-    if(missing_info[[c_name]][['is_binary']] == 1){
-      data_type = "int<lower = 0, upper = 1>"
-    }
-    else{
-      data_type = "real"
-    }
+    #if(missing_info[[c_name]][['is_binary']] == 1){
+    #  data_type = "int<lower = 0, upper = 1>"
+    #}
+    #else{
+    #  data_type = "real"
+    #}
+    data_type = "real"
     add_script("  ${data_type} ${c_name}[N];")
     add_script("  ${c_name}[ii_obs_${c_name}] = ${c_name}_obs;")
     add_script("  ${c_name}[ii_mis_${c_name}] = ${c_name}_mis;")
@@ -346,17 +364,18 @@ generate_model = function(
       next
     }
     add_script("  for(i in 1:N){")
-    if(missing_info[[c_name]][['is_binary']] == 1){
-      add_script("    ${c_name}[i] ~ bernoulli(p_${c_name});")
-    }
-    else{
-      add_script("    ${c_name}[i] ~ normal(u_${c_name}, sig_${c_name});")
-    }
+    #if(missing_info[[c_name]][['is_binary']] == 1){
+    #  add_script("    ${c_name}[i] ~ bernoulli(p_${c_name});")
+    #}
+    #else{
+    #  add_script("    ${c_name}[i] ~ normal(u_${c_name}, sig_${c_name});")
+    #}
+    add_script("    ${c_name}[i] ~ normal(u_${c_name}, sig_${c_name});")
     add_script("  }")
   }
 
 
-  # the distribution of ddm parameter for each subject at baseline experiment condition
+  # the prior distribution of ddm parameter for each subject when all trial-level variables are 0
   add_script("  ")
   add_script("  // priors for each subject")
   add_script("  for(i in 1:N){")

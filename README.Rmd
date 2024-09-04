@@ -34,6 +34,7 @@ First, load the package and the example dataset.
 
 ```{r example}
 library(RegDDM)
+library(tidyverse)
 data(regddm_data)
 ```
 
@@ -52,17 +53,27 @@ Specify the model using a list. In this example, we want to study how the memory
 ```{r, cache = TRUE}
 model = list(
   v ~ memload,
-  y ~ v_0 + v_memload + age + education
+  y ~ v_0 + v_memload + education + age
 )
 ```
 
 Use the main function to automatically generate the stan model and summary the results. This could take ~20 minutes to run. The rows starting with 'beta_' are the posterior distributions of regression parameters:  
 
 ```{r, cache = TRUE, warnings = FALSE}
+data1 = regddm_data$data1 
+data2 = regddm_data$data2 %>% mutate(memload = factor(memload))
+data1$education=factor(ifelse(data1$education>15,1,0))
+data1$education[1]=NA
+data1$age[1]=NA
+
+
 fit = regddm(
   data1,
   data2,
-  model
+  model,
+  fit_model = TRUE,
+  warmup = 500,
+  iter = 1000
 )
 ```
 

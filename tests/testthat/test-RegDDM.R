@@ -13,18 +13,27 @@ test_that("data check works", {
 
 })
 
-test_that("model check works", {
-
-})
 
 test_that("fake data generation works", {
+
 
 })
 
 # the following code needs to fit stan models, which takes 4 cores and a long time
 # all tests will not be performed on CRAN but locally.
-test_that("normal model works", {
+test_that("example code works", {
   skip_on_cran()
+  data(regddm_data)
+  data1 = regddm_data$data1
+  data2 = regddm_data$data2
+  model = list(v ~ memload, y ~ v_0 + v_memload + age + education)
+  fit = regddm(
+    regddm_data$data1,
+    regddm_data$data2,
+    model,
+    warmup = 500,
+    iter = 1000
+  )
 })
 
 test_that("missing covariates modeling works", {
