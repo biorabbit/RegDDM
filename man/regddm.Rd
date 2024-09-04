@@ -19,7 +19,7 @@ regddm(data1, data2, model, family = 'gaussian', ddm_link = "default", init = "d
 
 \item{init}{either \code{default} or other values supported by rstan (see rstan documentation)}
 
-\item{scale}{a losigtic value, specifying weather or not to scale trial-level variables in \code{data2}}
+\item{prior}{a losigtic value, specifying whether or not to use default prior for DDM parameters where default is TRUE. Improper use of prior distribution may influence model validity.}
 
 \item{stan_filename}{a string specifying the automatically generated stan file name.
 if an empty string \code{''} is provided, a temporary file will be created and deleted after the model is fit.}

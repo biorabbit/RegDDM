@@ -4,21 +4,25 @@
 \alias{generate_fake_data}
 \title{This function generates a fake dataset under different configurations
 It can be used to test the performance of RegDDM under different conditions.
-It is also used in testing the functionality of the package}
+It is also used in testing the functionality of the package.}
 \usage{
 generate_fake_data(
-  N = 10,
-  beta_0 = 0.2,
-  beta_c1 = -1,
+  N = 20,
+  beta_0 = 0,
+  beta_c1 = 0,
   beta_c2 = 0,
-  beta_v_x1 = 1,
+  beta_v_0 = 0,
+  beta_v_x1 = 0,
   beta_v_x2 = 0,
-  sigma_y = 0.1,
-  rep_trial = 4
+  sigma_y = 1,
+  sigma_v = 0,
+  n_xvar = 2,
+  n_each = 100,
+  y_family = "gaussian"
 )
 }
 \description{
 This function generates a fake dataset under different configurations
 It can be used to test the performance of RegDDM under different conditions.
-It is also used in testing the functionality of the package
+It is also used in testing the functionality of the package.
 }
