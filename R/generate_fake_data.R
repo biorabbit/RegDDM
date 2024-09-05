@@ -30,8 +30,8 @@ generate_fake_data <- function(
       a_0 = runif(N, 1, 3),
       z_0 = runif(N, 0.4, 0.6),
       v_0 = rnorm(N, 1.5, 0.5),
-      c1 = rnorm(N, 0, 1),
-      c2 = as.integer(runif(N,0,2)),
+      c1 = runif(N,0,2),
+      c2 = runif(N,0,2),
       v_x1 = rnorm(N)*ifelse(n_xvar >= 1, 1, 0), # first trial-level variable
       v_x2 = rnorm(N)*ifelse(n_xvar == 2, 1, 0) # second trial-level variable
     )

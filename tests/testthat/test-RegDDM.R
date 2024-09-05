@@ -40,13 +40,13 @@ test_that("data check works", {
   expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
 
   data1_test = data1
-  data2_test = dplyr::select(data1, -id)
+  data2_test = dplyr::select(data2, -id)
   expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
 
-  data2_test = dplyr::select(data1, -rt)
+  data2_test = dplyr::select(data2, -rt)
   expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
 
-  data2_test = dplyr::select(data1, -response)
+  data2_test = dplyr::select(data2, -response)
   expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
 
   # test that improper coding of response will trigger an error
@@ -93,26 +93,26 @@ test_that("model check works"){
 
 test_that("fake data generation works", {
   expect_no_error(
-    fake_data = generate_fake_data()
+    generate_fake_data()
   )
 })
 
 
 test_that("missing covariates modeling works", {
   skip_on_cran()
-  fake_data = generate_fake_data(N = 20, n_xvar = 0, n_each = 50)
+  fake_data = generate_fake_data(N = 5, n_xvar = 0, n_each = 50)
   # convert continuous predictor to binary one to test missing value modeling in both conditions
-  data1 = dplyr::mutate(fake_data[["data1"]], c1 = ifelse(c1 > 0, 1, 0))
+  data1 = fake_data[["data1"]]
   data1[["c1"]][1:2] = c(NA, NA)
   data1[["c2"]][2] = NA
   data2 = fake_data[["data2"]]
-  model = list(y ~ c1 + c2 + v_0)
+  model = list(y ~ 1)
   expect_no_error(regddm(data1, data2, model))
 })
 
 test_that("model with interaction works", {
   skip_on_cran()
-  fake_data = generate_fake_data(N = 40, n_xvar = 2, n_each = 50)
+  fake_data = generate_fake_data(N = 50, n_xvar = 2, n_each = 100)
   data1 = fake_data[["data1"]]
   data2 = fake_data[["data2"]]
   model = list(

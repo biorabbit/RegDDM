@@ -67,7 +67,7 @@ full_model = list(
   # append covariates with factors to the y_replacement_list
   all_cov = colnames(data1)
   for(cov in all_cov){
-    if(!is.factor(data1[[cov]])){
+    if(is_continuous(data1[[cov]])){
       next
     }
     replacement = levels(factor(data1[[cov]], exclude = NULL))[-1]

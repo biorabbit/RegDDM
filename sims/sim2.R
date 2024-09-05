@@ -5,9 +5,9 @@
 # between RegDDM and 2-step approaches, as well as MSE for ddm parameter estimates.
 # Each simulates an experiment with two trial-level variables.
 # One of them is related to y, the other one is not.
-N = 20
-n_each = 30
-out_file = "test2.csv"
+# N = 30
+# n_each = 30
+# out_file = "test2.csv"
 simulate_experiment = function(
     N, # number of subjects
     n_each, # number of trials for each subject
@@ -38,8 +38,9 @@ simulate_experiment = function(
     fake_data[["data2"]],
     model,
     stan_filename = "",
-    warmup = 1000,
-    iter = 2000
+    fit_model = TRUE,
+    warmup = 500,
+    iter = 1000
   )
 
   model_2step = list(
@@ -52,8 +53,8 @@ simulate_experiment = function(
     fake_data[["data2"]],
     model_2step,
     stan_filename = "",
-    warmup = 1000,
-    iter = 2000
+    warmup = 500,
+    iter = 1000
   )
 
 

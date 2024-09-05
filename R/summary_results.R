@@ -13,7 +13,7 @@ summary_results = function(fit,model,data1){
 
   extract_subject_ddm = function(statistics){
     subject_ddm =
-      dplyr::filter(res, stringr::str_detect(variable, ".*\\[\\d+\\]$"))
+      dplyr::filter(res, stringr::str_detect(variable, "^[atzv]_.+\\[\\d+\\]$"))
 
     subject_ddm =
       dplyr::mutate(

@@ -55,7 +55,10 @@ check_data = function(
     stop("Must identify subjects using variable 'id' in data2\n")
   }
   if(! "response" %in% colnames(data2)){
-    stop("variable 'response' not found in data2. Encode the response of the subject using Yes = 1, No = 0\n")
+    stop("variable 'response' not found in data2.\n")
+  }
+  if(!all(unique(data2$response) %in% c(0, 1))){
+    stop("Encode the 'response' of the trial in data2 using upper = 1, lower = 0\n")
   }
   if(! "rt" %in% colnames(data2)){
     stop("variable 'rt' not found in data2. Encode the response time of subjects in seconds\n")

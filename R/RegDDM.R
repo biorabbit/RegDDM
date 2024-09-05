@@ -143,7 +143,7 @@ regddm = function(
 
   # present the results in a better format
   output = summary_results(fit, model, data1)
-
+  #output = fit
 
   # print the useful information
   print(

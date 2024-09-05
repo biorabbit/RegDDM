@@ -5,7 +5,7 @@ is_continuous = function(column){
   if(!is.numeric(column)){
     return(FALSE)
   }
-  if(length(unique(column)) == 2){
+  if(length(na.omit(unique(column))) == 2){
     return(FALSE)
   }
   return(TRUE)
