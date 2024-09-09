@@ -61,11 +61,7 @@ Use the main function to automatically generate the stan model and summary the r
 
 ```{r, cache = TRUE, warnings = FALSE}
 data1 = regddm_data$data1 
-data2 = regddm_data$data2 %>% mutate(memload = factor(memload))
-data1$education=factor(ifelse(data1$education>15,1,0))
-data1$education[1]=NA
-data1$age[1]=NA
-
+data2 = regddm_data$data2
 
 fit = regddm(
   data1,

@@ -48,6 +48,7 @@ regddm = function(
     init = "default",
     prior = TRUE,
     stan_filename = "stan_model.stan",
+    gen_model = TRUE,
     fit_model = TRUE,
     warmup = 500,
     iter = 1000,
@@ -101,6 +102,7 @@ regddm = function(
   }
 
   # automatically generate the stan model
+  if(gen_model){
   generate_model(
     stan_data,
     data1,
@@ -110,6 +112,7 @@ regddm = function(
     family,
     stan_filename
   )
+  }
   rstan::stanc(stan_filename)
 
   # find the initialization for MCMC sampling
