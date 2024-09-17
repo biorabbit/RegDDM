@@ -1,19 +1,19 @@
-#' given the inverse of link function at a specified value
-#' @keywords internal
-#' @noRd
-inverse_ddm_link = function(ddm_link, value){
-  value = as.numeric(value)
-  if(ddm_link == ""){
-    return(value)
-  }
-  if(ddm_link == "exp"){
-    return(log(value))
-  }
-  if(ddm_link == "inv_logit"){
-    return(log(value/(1-value)))
-  }
-  stop("unsupported ddm link")
-}
+# #' given the inverse of link function at a specified value
+# #' @keywords internal
+# #' @noRd
+# inverse_ddm_link = function(ddm_link, value){
+#   value = as.numeric(value)
+#   if(ddm_link == ""){
+#     return(value)
+#   }
+#   if(ddm_link == "exp"){
+#     return(log(value))
+#   }
+#   if(ddm_link == "inv_logit"){
+#     return(log(value/(1-value)))
+#   }
+#   stop("unsupported ddm link")
+# }
 
 #' This function generates the default initialization list for RStan
 #' Because DDM parameters have certain constraints, default initialization of
@@ -21,7 +21,8 @@ inverse_ddm_link = function(ddm_link, value){
 #' RegDDM will adopt a smarter way. The user can also provide other inits.
 #' @keywords internal
 #' @noRd
-generate_default_initialization = function(data1, data2, model, ddm_link){
+# generate_default_initialization = function(data1, data2, model, ddm_link){
+generate_default_initialization = function(data1, data2, model){
   init_list = list()
 
   # For GLM regression coefficients, start from no correlation.
@@ -46,16 +47,17 @@ generate_default_initialization = function(data1, data2, model, ddm_link){
 
   # Subject-level baseline DDM parameters also starts from reasonable values.
   N = nrow(data1)
-  init_list[["a_0"]] = rep(inverse_ddm_link(ddm_link[["a"]], 1), N)
-  init_list[["z_0"]] = rep(inverse_ddm_link(ddm_link[["z"]], 0.5), N)
-  init_list[["v_0"]] = rep(inverse_ddm_link(ddm_link[["v"]], 0), N)
+  init_list[["a_0"]] = rep(1, N)
+  init_list[["z_0"]] = rep(0.5, N)
+  init_list[["v_0"]] = rep(0, N)
 
   # Note that baseline non-decision time needs special treatment.
   # They start from half of the minimal reaction time of each subject.
   init_list[["t_0"]] = rep(NA, N)
   min_reaction_time = dplyr::summarise(dplyr::group_by(data2, id), rt = min(rt))
   for(i in 1:N){
-    init_list[["t_0"]][i] = inverse_ddm_link(ddm_link[["t"]], min_reaction_time[i,2]/2)
+    # init_list[["t_0"]][i] = inverse_ddm_link(ddm_link[["t"]], min_reaction_time[i,2]/2)
+    init_list[["t_0"]][i] = as.numeric(min_reaction_time[i,2]/2)
   }
 
   # Initialize other subject-level ddm parameters to 0.

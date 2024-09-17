@@ -44,7 +44,7 @@ regddm = function(
     data2,
     model,
     family = "gaussian",
-    ddm_link = "default",
+    # ddm_link = "default",
     init = "default",
     prior = TRUE,
     stan_filename = "stan_model.stan",
@@ -77,22 +77,22 @@ regddm = function(
   stan_data = format_data(data1, data2)
 
   # set the link function of ddm parameters
-  if(is.character(ddm_link) && ddm_link == "default"){
-    ddm_link = list(
-      a = "exp",
-      t = "exp",
-      z = "inv_logit",
-      v = ""
-    )
-  }
-  else if(is.character(ddm_link) && ddm_link == "ident"){
-    ddm_link = list(
-      a = "",
-      t = "",
-      z = "",
-      v = ""
-    )
-  }
+  # if(is.character(ddm_link) && ddm_link == "default"){
+  #   ddm_link = list(
+  #     a = "exp",
+  #     t = "exp",
+  #     z = "inv_logit",
+  #     v = ""
+  #   )
+  # }
+  # else if(is.character(ddm_link) && ddm_link == "ident"){
+  #   ddm_link = list(
+  #     a = "",
+  #     t = "",
+  #     z = "",
+  #     v = ""
+  #   )
+  # }
 
   # see if the automatically generated file should be deleted
   delete_flag = FALSE
@@ -108,7 +108,7 @@ regddm = function(
     data1,
     model,
     prior,
-    ddm_link,
+    # ddm_link,
     family,
     stan_filename
   )
@@ -117,8 +117,9 @@ regddm = function(
 
   # find the initialization for MCMC sampling
   if(is.character(init) && init == "default"){
-    #init_list = list(t_0 = log(rep(0.03, N)), a_0 = log(rep(1, N)), v_0 = rep(1, N), z_0 = rep(0, N))
-    init_list = generate_default_initialization(data1, data2, model, ddm_link)
+    # init_list = list(t_0 = log(rep(0.03, N)), a_0 = log(rep(1, N)), v_0 = rep(1, N), z_0 = rep(0, N))
+    # init_list = generate_default_initialization(data1, data2, model, ddm_link)
+    init_list = generate_default_initialization(data1, data2, model)
     init = replicate(chains, init_list, simplify = FALSE)
   }
 
