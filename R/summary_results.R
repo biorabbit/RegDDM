@@ -30,7 +30,7 @@ summary_results = function(fit,model,data1){
   }
 
   glm_coefficiets =
-    dplyr::filter(res, stringr::str_detect(variable, "^beta_") | stringr::str_detect(variable, "^sigma_y$"))
+    dplyr::filter(res, stringr::str_detect(variable, "^beta_") | stringr::str_detect(variable, "^sigma$"))
 
   subject_ddm_param = list(
     mean = extract_subject_ddm("mean"),
@@ -40,9 +40,14 @@ summary_results = function(fit,model,data1){
     Rhat = extract_subject_ddm("Rhat")
   )
 
-  group_ddm_param = dplyr::filter(
+  group_param = dplyr::filter(
     res,
-    stringr::str_detect(variable,"^(u|sig)_(a|v|t|z)_")
+    stringr::str_detect(variable,"^(mu|sigma)_.+$")
+  )
+
+  missing_value = dplyr::filter(
+    res,
+    stringr::str_detect(variable,"^.+_mis.*$")
   )
 
   max_r_hat = max(res$Rhat)
@@ -51,9 +56,8 @@ summary_results = function(fit,model,data1){
     list(
       glm_coefficiets = glm_coefficiets, # glm regression parameters
       subject_ddm_param = subject_ddm_param, # ddm parameters of each subject
-      group_ddm_param = group_ddm_param, # group mean and SD of DDM parameters
-      missing_value = NA, # estimated missing covariates
-      group_covariates = NA, # group mean and sd of covariates
+      group_param = group_param, # group mean and SD of DDM parameters
+      missing_value = missing_value, # estimated missing covariates
       max_r_hat = max_r_hat,
       model = model,
       stan_fit = fit # additional information can be found from the original stan model.

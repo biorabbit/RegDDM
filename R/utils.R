@@ -6,9 +6,6 @@ replace_colon = function(var){
 }
 
 
-
-
-
 #' This function determines whether a vector is scaled or not
 #' @keywords internal
 #' @noRd

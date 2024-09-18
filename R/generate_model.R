@@ -18,24 +18,39 @@ generate_model = function(
   x_names = stan_data$x_names
   c_names = stan_data$c_names
   stan_data = stan_data$data
+  primary_outcome = ifelse(is_formula(model[["y"]]), all.vars(model[["y"]])[[1]], NA)
 
+  if(!is.na(primary_outcome) && sum(is.na(data1[[primary_outcome]] > 0))){
+    stop("outcome must contain no missing data")
+  }
   # make sure the data type of y matches the distribution
-  if(family == "gaussian"){
-    if(!is.numeric(stan_data$y)){
-      stop(stringr::str_interp("for Gaussian family, 'y' must be numeric\n"))
+  if(is.na(primary_outcome)){
+    TRUE # no outcome is needed thus no distribution family required
+  }
+  else if(family == "gaussian"){
+    if(primary_outcome %in% c_names && !is.numeric(stan_data[[primary_outcome]])){
+      stop(stringr::str_interp("for Gaussian family, outcome must be numeric or a DDM parameter\n"))
     }
   }
   else if(family == "bernoulli"){
-    for(each in stan_data$y){
+    if(!primary_outcome %in% c_names){
+      stop(stringr::str_interp("if outcome is a DDM parameter, gaussian family distribution is required\n"))
+    }
+
+    for(each in stan_data[[primary_outcome]]){
       if(!(each == 0 | each == 1)){
-        stop(stringr::str_interp("for Bernoulli family, 'y' must be either 1 or 0\n"))
+        stop(stringr::str_interp("for Bernoulli family, outcome must be either 1 or 0\n"))
       }
     }
   }
   else if(family == "poisson"){
-    for(each in stan_data$y){
+    if(!primary_outcome %in% c_names){
+      stop(stringr::str_interp("if outcome is a DDM parameter, gaussian family distribution is required\n"))
+    }
+
+    for(each in stan_data[[primary_outcome]]){
       if(as.integer(each) != each | each < 0){
-        stop(stringr::str_interp("for Poisson family, 'y' must be integers >=0\n"))
+        stop(stringr::str_interp("for Poisson family, outcome must be integers >= 0\n"))
       }
     }
   }
@@ -88,12 +103,12 @@ generate_model = function(
   #      }
   #    }
   #  }
-  default_ddm_constraints = list(a = "<lower = 0>", t = "<lower = 0.01>", z = "<lower = 0.01, upper = 0.99>", v = "")
+  # default_ddm_constraints = list(a = "<lower = 0>", t = "<lower = 0.01>", z = "<lower = 0.01, upper = 0.99>", v = "")
   default_ddm_priors = list(a = TRUE, t = TRUE, z = TRUE, v = TRUE)
   if(!prior){
     for(param in c("a","t","z","v")){
       if(length(attr(terms(model[[param]]), "term.labels")) == 0){
-        default_ddm_constraints[[param]] = ""
+        # default_ddm_constraints[[param]] = ""
         default_ddm_priors[[param]] = FALSE
       }
     }
@@ -164,14 +179,14 @@ generate_model = function(
   }
 
   # for subject-level output y
-  add_script("")
-  add_script("  // output y")
-  if(family == "gaussian"){
-    add_script("  real y[N];")
-  }
-  else{
-    add_script("  int y[N];")
-  }
+  # add_script("")
+  # add_script("  // output y")
+  # if(family == "gaussian"){
+  #   add_script("  real y[N];")
+  # }
+  # else{
+  #   add_script("  int y[N];")
+  # }
 
 
   # for response, response time and subject id of each trial
@@ -192,30 +207,37 @@ generate_model = function(
   add_script("parameters {")
 
   # for regression parameters
-  add_script("  // regression parameters of output y")
-  add_script("  real beta_0;")
-  for(predictor in attr(terms(model$y), "term.labels")){
-    predictor = replace_colon(predictor)
-    add_script("  real beta_${predictor};")
-  }
-  if(family == "gaussian"){
-    add_script("  real<lower = 0> sigma_y;")
+  if(!is.na(primary_outcome)){
+    add_script("  // regression parameters of output")
+    add_script("  real beta_0;")
+    for(predictor in attr(terms(model$y), "term.labels")){
+      predictor = replace_colon(predictor)
+      add_script("  real beta_${predictor};")
+    }
+    if(family == "gaussian"){
+      add_script("  real<lower = 0> sigma;")
+    }
   }
 
   # group mean and sd of missing covariates
   add_script("")
-  add_script("  // group mean and sd of missing covariates")
+  add_script("  // group mean and sd of covariates")
   for(c_name in c_names){
-    if(missing_info[[c_name]][['n_mis']] == 0){
+    # if(missing_info[[c_name]][['n_mis']] == 0){
+    #   next
+    # }
+    # # if(missing_info[[c_name]][['is_binary']] == 1){
+    # #   add_script("  real p_${c_name};")
+    # # }
+    # else{
+    #   add_script("  real u_${c_name};")
+    #   add_script("  real<lower = 0> sig_${c_name};")
+    # }
+    if(!is.na(primary_outcome) && c_name == primary_outcome){
       next
     }
-    #if(missing_info[[c_name]][['is_binary']] == 1){
-    #  add_script("  real p_${c_name};")
-    #}
-    else{
-      add_script("  real u_${c_name};")
-      add_script("  real<lower = 0> sig_${c_name};")
-    }
+    add_script("  real mu_${c_name};")
+    add_script("  real<lower = 0> sigma_${c_name};")
 
   }
 
@@ -236,9 +258,12 @@ generate_model = function(
     tmp_term = c("0", tmp_term) # this is for intercept
     for(predictor in tmp_term){
       predictor = replace_colon(predictor)
-      add_script("  real u_${param}_${predictor};")
-      add_script("  real<lower = 0> sig_${param}_${predictor};")
       add_script("  real ${param}_${predictor}[N];")
+      if(!is.na(primary_outcome) && paste0(param, "_", predictor) == primary_outcome){
+        next
+      }
+      add_script("  real mu_${param}_${predictor};")
+      add_script("  real<lower = 0> sigma_${param}_${predictor};")
     }
   }
 
@@ -338,39 +363,42 @@ generate_model = function(
   # priors.
   # priors for ddm group parameters, adopted from HDDM
   add_script("  // priors for ddm group parameters")
-  if(default_ddm_priors[["a"]]){
-  add_script("  u_a_0 ~ gamma(1.125, 0.75);")
-  add_script("  sig_a_0 ~ normal(0, 0.1);")
+  if(is.na(primary_outcome) || default_ddm_priors[["a"]] & "a_0" != primary_outcome){
+  add_script("  mu_a_0 ~ gamma(1.125, 0.75);")
+  add_script("  sigma_a_0 ~ normal(0, 0.1);")
   }
-  if(default_ddm_priors[["t"]]){
-    add_script("  u_t_0 ~ gamma(0.08, 0.2);")
-    add_script("  sig_t_0 ~ normal(0, 1);")
+  if(is.na(primary_outcome) || default_ddm_priors[["t"]] & "t_0" != primary_outcome){
+    add_script("  mu_t_0 ~ gamma(0.08, 0.2);")
+    add_script("  sigma_t_0 ~ normal(0, 1);")
   }
-  if(default_ddm_priors[["z"]]){
-    add_script("  u_z_0 ~ normal(0.5, 0.5);")
-    add_script("  sig_z_0 ~ normal(0, 0.05);")
+  if(is.na(primary_outcome) || default_ddm_priors[["z"]] & "z_0" != primary_outcome){
+    add_script("  mu_z_0 ~ normal(0.5, 0.5);")
+    add_script("  sigma_z_0 ~ normal(0, 0.05);")
   }
-  if(default_ddm_priors[["v"]]){
-    add_script("  u_v_0 ~ normal(2, 3);")
-    add_script("  sig_v_0  ~ normal(0, 2);")
+  if(is.na(primary_outcome) || default_ddm_priors[["v"]] & "v_0" != primary_outcome){
+    add_script("  mu_v_0 ~ normal(2, 3);")
+    add_script("  sigma_v_0  ~ normal(0, 2);")
   }
 
 
   # modeling missing covariates
   add_script("  ")
-  add_script("  // modeling missing covariates")
+  add_script("  // modeling covariates")
   for(c_name in c_names){
-    if(missing_info[[c_name]][['n_mis']] == 0){
+    # if(missing_info[[c_name]][['n_mis']] == 0){
+    #   next
+    # }
+    if(!is.na(primary_outcome) && c_name == primary_outcome){
       next
     }
     add_script("  for(i in 1:N){")
-    #if(missing_info[[c_name]][['is_binary']] == 1){
-    #  add_script("    ${c_name}[i] ~ bernoulli(p_${c_name});")
-    #}
-    #else{
-    #  add_script("    ${c_name}[i] ~ normal(u_${c_name}, sig_${c_name});")
-    #}
-    add_script("    ${c_name}[i] ~ normal(u_${c_name}, sig_${c_name});")
+    # if(missing_info[[c_name]][['is_binary']] == 1){
+    #   add_script("    ${c_name}[i] ~ bernoulli(p_${c_name});")
+    # }
+    # else{
+    #   add_script("    ${c_name}[i] ~ normal(u_${c_name}, sig_${c_name});")
+    # }
+    add_script("    ${c_name}[i] ~ normal(mu_${c_name}, sigma_${c_name});")
     add_script("  }")
   }
 
@@ -383,16 +411,16 @@ generate_model = function(
   # add_script("    z_0_transformed[i] ~ normal(u_z_0, sig_z_0);")
   # add_script("    t_0_transformed[i] ~ normal(u_t_0, sig_t_0);")
   # add_script("    v_0_transformed[i] ~ normal(u_v_0, sig_v_0);")
-  add_script("    a_0[i] ~ normal(u_a_0, sig_a_0);")
-  add_script("    z_0[i] ~ normal(u_z_0, sig_z_0);")
-  add_script("    t_0[i] ~ normal(u_t_0, sig_t_0);")
-  add_script("    v_0[i] ~ normal(u_v_0, sig_v_0);")
+
 
   # and for their sensitivity to changes in the conditions
   for(param in c("a", "t", "z", "v")){
-    for(predictor in attr(terms(model[[param]]), "term.labels")){
+    for(predictor in c("0", attr(terms(model[[param]]), "term.labels"))){
       predictor = replace_colon(predictor)
-      add_script("    ${param}_${predictor}[i] ~ normal(u_${param}_${predictor}, sig_${param}_${predictor});")
+      if(!is.na(primary_outcome) && paste0(param, "_", predictor) == primary_outcome){
+        next
+      }
+      add_script("    ${param}_${predictor}[i] ~ normal(mu_${param}_${predictor}, sigma_${param}_${predictor});")
     }
   }
   add_script("  }")
@@ -435,38 +463,40 @@ generate_model = function(
   add_script("  }")
 
   # regression part of the model
-  add_script("  ")
-  add_script("  // generalized linear regression part of the model")
-  add_script("  real eta[N]; // linear predictor")
-  add_script("  for(i in 1:N){")
-  # # previous linear model, no longer needed
-  # str = "    y[i] ~ normal(beta_0"
-  # for(predictor in model$y){
-  #   str = stringr::str_c(str, stringr::str_interp(" + beta_${predictor}*${predictor}[i]"))
-  # }
-  # str = stringr::str_c(str, ", sigma_y);")
-  # add_script(str)
-  tmp_term = attr(terms(model[["y"]]), "term.labels")
-  str = "    eta[i] = beta_0"
-  for(predictor in tmp_term){
-    tmp_str = stringr::str_c(
-      "beta_",predictor,"*",stringr::str_replace_all(predictor, ":", "[i]*")
-    )
-    str = stringr::str_c(str, stringr::str_interp(" + ${tmp_str}[i]"))
+  if(!is.na(primary_outcome)){
+    add_script("  ")
+    add_script("  // generalized linear regression part of the model")
+    add_script("  real eta[N]; // linear predictor")
+    add_script("  for(i in 1:N){")
+    # # previous linear model, no longer needed
+    # str = "    y[i] ~ normal(beta_0"
+    # for(predictor in model$y){
+    #   str = stringr::str_c(str, stringr::str_interp(" + beta_${predictor}*${predictor}[i]"))
+    # }
+    # str = stringr::str_c(str, ", sigma_y);")
+    # add_script(str)
+    tmp_term = attr(terms(model[["y"]]), "term.labels")
+    str = "    eta[i] = beta_0"
+    for(predictor in tmp_term){
+      tmp_str = stringr::str_c(
+        "beta_",predictor,"*",stringr::str_replace_all(predictor, ":", "[i]*")
+      )
+      str = stringr::str_c(str, stringr::str_interp(" + ${tmp_str}[i]"))
+    }
+    str = stringr::str_c(str, ";")
+    str = replace_colon(str)
+    add_script(str)
+    if(family == "gaussian"){
+      add_script("    ${primary_outcome}[i] ~ normal(eta[i], sigma);")
+    }
+    else if(family == "bernoulli"){
+      add_script("    ${primary_outcome}[i] ~ bernoulli(inv_logit(eta[i]));")
+    }
+    else if(family == "poisson"){
+      add_script("    ${primary_outcome}[i] ~ poisson(exp(eta[i]));")
+    }
+    add_script("  }")
   }
-  str = stringr::str_c(str, ";")
-  str = replace_colon(str)
-  add_script(str)
-  if(family == "gaussian"){
-    add_script("    y[i] ~ normal(eta[i], sigma_y);")
-  }
-  else if(family == "bernoulli"){
-    add_script("    y[i] ~ bernoulli(inv_logit(eta[i]));")
-  }
-  else if(family == "poisson"){
-    add_script("    y[i] ~ poisson(exp(eta[i]));")
-  }
-  add_script("  }")
 
   add_script("}")
 }

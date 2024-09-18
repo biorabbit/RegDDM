@@ -1,20 +1,35 @@
 #' A small function to format the model
 #' @keywords internal
 #' @noRd
-parse_model = function(model,data1, data2){
+parse_model = function(model, data1, data2){
 full_model = list(
     a = a~1,
     t = t~1,
     z = z~1,
     v = v~1,
-    y = y~1
+    y = NA
   )
+
+  n_outcome = 0
+  primary_outcome = NA
   for(param in model){
     outcome = all.vars(param)[[1]]
-    if(!outcome %in% c("a","t","z","v","y")){
-      stop("model must only contain a, t, z, v, y as outcome")
+    if(!outcome %in% c("a","t","z","v")){
+      n_outcome = n_outcome + 1
+      primary_outcome = outcome
+      full_model[["y"]] = param
     }
-    full_model[[outcome]] = param
+    else{
+      full_model[[outcome]] = param
+    }
+    if(n_outcome >= 2){
+      stop("model must contain only zero or one primary outcome")
+    }
+  }
+
+  # primary outcome must be numeric
+  if(!is.na(primary_outcome) && is.factor(data1[[primary_outcome]])){
+    stop("primary outcome must be numeric")
   }
 
   y_replacement_list = list()
@@ -65,9 +80,13 @@ full_model = list(
 
   # deal with y
   # append covariates with factors to the y_replacement_list
+  if(is.na(primary_outcome)){
+    return(full_model)
+  }
+
   all_cov = colnames(data1)
   for(cov in all_cov){
-    if(is_continuous(data1[[cov]])){
+    if(is.numeric(data1[[cov]])){
       next
     }
     replacement = levels(factor(data1[[cov]], exclude = NULL))[-1]
@@ -90,6 +109,12 @@ full_model = list(
 
   return(full_model)
 }
+
+
+
+
+
+
 
 
 

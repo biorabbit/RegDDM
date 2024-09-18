@@ -22,7 +22,7 @@ format_data = function(
   out_list = list(
     N = nrow(data1),
     n = nrow(data2),
-    y = data1$y,
+    # y = data1$y,
     response = data2$response,
     rt = data2$rt,
     id = match(data2$id,data1$id)
@@ -37,12 +37,14 @@ format_data = function(
   # replace NA in continuous variables by a placeholder
   # and NA in catagorical variables by a string "NA"
   for(cov in colnames(data1)){
-    if(cov == "id" | cov == "y"){
+    # if(cov == "id" | cov == "y"){
+    if(cov == "id"){
       next
     }
     # for numeric variables that is not binary, replace the missing value with
     # a placeholder
-    if(is_continuous(data1[[cov]])){
+    # if(is_continuous(data1[[cov]])){
+    if(is.numeric(data1[[cov]])){
       data1[[cov]][is.na(data1[[cov]])] = placeholder
     }
     # for binary or categorical variables, transform into factors with NA as
@@ -62,7 +64,8 @@ format_data = function(
   # put all data in the format required by rstan
   c_names = c()
   for(cov in colnames(data1)){
-    if(cov == "id" | cov == "y"){
+    # if(cov == "id" | cov == "y"){
+    if(cov == "id"){
       next
     }
     c_names = c(c_names, cov)

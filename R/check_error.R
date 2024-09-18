@@ -17,9 +17,9 @@ check_data = function(
 
 
   # check for errors in subject-level data
-  if(! "y" %in% colnames(data1)){
-    stop("Outcome 'y' must be a variable of data1\n")
-  }
+  # if(! "y" %in% colnames(data1)){
+  #   stop("Outcome 'y' must be a variable of data1\n")
+  # }
   if(! "id" %in% colnames(data1)){
     stop("Must identify subjects using variable 'id' in data1\n")
   }
@@ -37,7 +37,7 @@ check_data = function(
 
   # check for missing values in subject-level data
   for(cov in colnames(data1)){
-    if(cov %in% c("id", "y")){
+    if(cov == "id"){
       if(sum(is.na(dplyr::pull(data1,cov))) > 0){
         stop(stringr::str_interp("'${cov}' in 'data1' cannot contain missing values\n"))
       }
@@ -67,7 +67,7 @@ check_data = function(
     warning("Some trials has response time(rt) less than 0.1s. Did your subjects make proper decision?\n")
   }
   if(min(data2$rt) > 10){
-    warning("Some trials has response time(rt) greater than 10s. The unit should be in seconds.\n")
+    warning("Some trials has response time(rt) greater than 10s. Check if the unit of reaction time is in seconds.\n")
   }
 
   for(id in unique(data2$id)){
@@ -84,7 +84,7 @@ check_data = function(
 
   for(i in data1$id){
     if(nrow(filter(data2, id == i)) < 10){
-      warning(paste0("You have subject with less than 10 trials, which may lead poor model performance\n"))
+      warning(paste0("You have subject with less than 10 trials, which may lead to poor model performance\n"))
       break
     }
   }
@@ -149,8 +149,8 @@ check_model = function(
   # check if there is duplicate parameter name
   # this could happen when there are three variables 'x1', 'x2' and 'x1_x2'
   # and a model with a ~ x1 * x2 + x1_x2 structure is fit...
-  # RegDDM will generate a_x1_x2 for x1, x2 interaction and also a_x1_x2 for x1_x2
-  # currently no good solution since stan does not accept x1:x2 as varaible name
+  # RegDDM will generate a_x1_x2 for x1, x2 interaction terms and also a_x1_x2 for x1_x2
+  # currently no good solution since stan does not accept x1:x2 as variable name
   duplicate_terms = dplyr::tibble(
     term = valid_parameters
   )
@@ -194,11 +194,15 @@ check_model = function(
   #  }
   #}
 
-  y_terms = attr(terms(model[["y"]]), "term.labels")
+  if(!is_formula(model[["y"]])){
+    return()
+  }
+
+  y_terms = as.character(attr(terms(model[["y"]]), "variables"))[-1]
   for(term in y_terms){
     if(!term %in% valid_parameters){
       stop(stringr::str_interp(
-        "'${term}' is not a valid term in formula for y. See '?regddm' for reference\n
+        "'${term}' is not a valid term in formula for the outcome. See '?regddm' for reference\n
         Valid terms are ${valid_parameters} and their interactions"
       ))
     }
