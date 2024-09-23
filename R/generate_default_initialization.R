@@ -1,29 +1,11 @@
-# #' given the inverse of link function at a specified value
-# #' @keywords internal
-# #' @noRd
-# inverse_ddm_link = function(ddm_link, value){
-#   value = as.numeric(value)
-#   if(ddm_link == ""){
-#     return(value)
-#   }
-#   if(ddm_link == "exp"){
-#     return(log(value))
-#   }
-#   if(ddm_link == "inv_logit"){
-#     return(log(value/(1-value)))
-#   }
-#   stop("unsupported ddm link")
-# }
-
 #' This function generates the default initialization list for RStan
 #' Because DDM parameters have certain constraints, default initialization of
 #' Rstan may result in Initilization failure.
 #' RegDDM will adopt a smarter way. The user can also provide other inits.
 #' @keywords internal
 #' @noRd
-# generate_default_initialization = function(data1, data2, model, ddm_link){
 generate_default_initialization = function(data1, data2, model){
-  primary_outcome = ifelse(is_formula(model[["y"]]), all.vars(model[["y"]])[[1]], NA)
+  primary_outcome = ifelse(purrr::is_formula(model[["y"]]), all.vars(model[["y"]])[[1]], NA)
   outcome_type = ifelse(primary_outcome %in% colnames(data1), 1, 2) # 1: subject-level variable, 2: DDM parameter
 
   init_list = list()
@@ -42,7 +24,6 @@ generate_default_initialization = function(data1, data2, model){
   init_list[["t_0"]] = rep(NA, N)
   min_reaction_time = dplyr::summarise(dplyr::group_by(data2, id), rt = min(rt))
   for(i in 1:N){
-    # init_list[["t_0"]][i] = inverse_ddm_link(ddm_link[["t"]], min_reaction_time[i,2]/2)
     init_list[["t_0"]][i] = as.numeric(min_reaction_time[i,2]/2)
   }
 

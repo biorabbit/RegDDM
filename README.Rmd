@@ -34,7 +34,6 @@ First, load the package and the example dataset.
 
 ```{r example}
 library(RegDDM)
-library(tidyverse)
 data(regddm_data)
 ```
 
@@ -53,7 +52,7 @@ Specify the model using a list. In this example, we want to study how the memory
 ```{r, cache = TRUE}
 model = list(
   v ~ memload,
-  y ~ v_0 + v_memload + education + age
+  iq ~ v_0 + v_memload + education + age
 )
 ```
 
@@ -64,8 +63,8 @@ data1 = regddm_data$data1
 data2 = regddm_data$data2
 
 fit = regddm(
-  data1,
-  data2,
+  regddm_data$data1,
+  regddm_data$data2,
   model,
   fit_model = TRUE,
   warmup = 500,
@@ -87,37 +86,31 @@ If you want to fit the model on your own data, you need to specify `data1`, `dat
 
 `data1` is subject-level data table. It should contain the following:
 * `id`: unique indexing column for each subject. 
-* `y`: primary outcome. 
-* other covariates that we want to adjust for. These covariates could contain some missing values. However,if there are too many missing values, the model may fail to converge.
+* other subject-level variables that we want to include in the regression. Variables used as covariates could contain missing values. 
 
 `data2` is trial-level data table. It should contain the following:
-* `id`: the subject of each trial using the same index in `data1`. All subjects must have a trial and all trials must have a subject.
+* `id`: the subject of each trial using the same index in `data1`. 
 * `rt`: response time of the trial in seconds.
 * `response``: response the trial. must be either 0 or 1. 
 * trial-level variables. These are the variables that differ by trial, such as difficulty of the task or different numbers on the screen. We assume that subjects' behavior changes according to these variables. These variables cannot contain missing values.
 
-`model` is the proposed dependency between these parameters. It must be a list containing several formulas, such as `v ~ x1 * x2`
-* `a`, `t`, `z`, `v`: can only contain names of trial-level variables in `data2`.
-* `y`: can only contain names of covariates in `data1` or parameters specified before in the format of `{a/t/z/v}_trial_level_variables`For example `v_x1` for main effect and `v_x1_x2` for interaction term. 
+`model` is the proposed dependency between these parameters. Default is an empty list. It must be a list of 0 - 5 formulas. The outcome of these formulas can be either:
+* one of the four DDM parameters `a`, `t`, `z`, `v`, modeling the relationship between DDM parameters and trial-level variables.
+* one formula for GLM regression, modeling the relationship between estimated DDM parameters and other subject-level variables. 
 
-`family` is the family of distribution of outcome `y`, similar to ones in generalized linear model. It can take either `gaussian`, `bernoulli` or `poisson`. Canonical link function is used in RegDDM.
+`family` is the family of distribution of GLM. It can be either `"gaussian"`, `"bernoulli"` or `"poisson"`. Default is `"gaussian"`.
 
-`ddm_link` specifies the relationship between DDM parameters of each trial and trial-level parameters. By default, 
-```{r}
-  ddm_link = list(
-    a = "exp",
-    t = "exp",
-    z = "inv_logit",
-    v = ""
-  )
-```
+`init` is how we initialize the MCMC algorithm. The `"default"` initialization should work in most conditions
 
-`init` how to initialize the MCMC algorithm. The `"default"` initialization should work in most conditions
+`prior` determines whether to use the default prior for DDM parameters or not. Default is `TRUE`
 
-`scale` whether to scale the trial-level variables in `data2` or not. If these variables are not scaled, the default prior distribution and constraints will be disabled.
+`stan_filename` is the file loaction for the automatically generated stan model. If an empty string '' is provided, a temporary file will be created and deleted after the model is fit. Default is `"stan_model.stan"`
 
-`stan_filename` the file loaction for the automatically generated stan model. If an empty string '' is provided, a temporary file will be created and deleted after the model is fit.
+`gen_model` determines whether to generate the model or not. Default is `TRUE`.
 
+`fit_model` determines whether to fit the model or not. Default is `TRUE`.
+
+`...`: additional parameters used by `rstan`, including `warmup`,`iter`,`chains`,`cores` etc. 
 
 
 # Citation

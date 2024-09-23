@@ -7,8 +7,6 @@ generate_model = function(
     data1,
     model,
     prior,
-    # ddm_link,
-    # rt_limits, # this is ugly but we need to specify the upper limit of reaction time for each subject (no longer needed)
     family,
     file_name
 ){
@@ -18,11 +16,13 @@ generate_model = function(
   x_names = stan_data$x_names
   c_names = stan_data$c_names
   stan_data = stan_data$data
-  primary_outcome = ifelse(is_formula(model[["y"]]), all.vars(model[["y"]])[[1]], NA)
+  primary_outcome = ifelse(purrr::is_formula(model[["y"]]), all.vars(model[["y"]])[[1]], NA)
 
+  # make sure the outcome contains no missing data
   if(!is.na(primary_outcome) && sum(is.na(data1[[primary_outcome]] > 0))){
     stop("outcome must contain no missing data")
   }
+
   # make sure the data type of y matches the distribution
   if(is.na(primary_outcome)){
     TRUE # no outcome is needed thus no distribution family required
@@ -71,54 +71,20 @@ generate_model = function(
       n_obs = n_obs,
       iid_mis = which(is.na(dat)),
       iid_obs = which(!is.na(dat))
-      #mean_hat = mean(dat, na.rm = TRUE),
-      #sd_hat = sqrt(var(dat, na.rm = TRUE)*n_obs/(n_obs-1)),
-      #is_binary = identical(sort(dat_unique), c(0,1))
     )
   }
 
-  # summary the unscaled trial-level variables and disable the corresponding ddm parameters
-  # unscaled_var_list = c()
-  # for(variable in colnames(data2)){
-  #   if(variable %in% c("id", "response", "rt")){
-  #     next()
-  #   }
-  #   if(!is_scaled(dplyr::pull(data2, variable))){
-  #     unscaled_var_list = c(unscaled_var_list, variable)
-  #   }
-  # }
-  # default_ddm_constraints = list(a = "<lower = 0>", t = "<lower = 0.01>", z = "<lower = 0.01, upper = 0.99>", v = "")
-  # default_ddm_priors = list(a = TRUE, t = TRUE, z = TRUE, v = TRUE)
-  #  disabled_ddm_prior = c()
-  #  for(param in c("a", "z", "t", "v")){
-  #    variables = rownames(attr(terms(model[[param]]), "factors"))
-  #    for(term in variables){
-  #      if(term == param){
-  #        next
-  #      }
-  #      if(term %in% unscaled_var_list){
-  #        default_ddm_constraints[[param]] = ""
-  #        default_ddm_priors[[param]] = FALSE
-  #        disabled_ddm_prior = c(disabled_ddm_prior, param)
-  #      }
-  #    }
-  #  }
-  # default_ddm_constraints = list(a = "<lower = 0>", t = "<lower = 0.01>", z = "<lower = 0.01, upper = 0.99>", v = "")
+  # whether to apply the default DDM priors.
+  # if priors == FALSE, priors for baseline parameters modeled trial-level variables will be disabled
+  # other DDM parameters are not influenced
   default_ddm_priors = list(a = TRUE, t = TRUE, z = TRUE, v = TRUE)
   if(!prior){
     for(param in c("a","t","z","v")){
       if(length(attr(terms(model[[param]]), "term.labels")) == 0){
-        # default_ddm_constraints[[param]] = ""
         default_ddm_priors[[param]] = FALSE
       }
     }
   }
-
-
-
-  #if(length(unscaled_var_list) >0 & FALSE %in% default_ddm_priors){
-  #  warning(paste0("variable: ", unscaled_var_list, "are not scaled. Default prior and constraints for ",disabled_ddm_prior, " are disabled. Be cautious about model convergence!"))
-  #}
 
   # internal function to append stan code to the model file
   add_script = function(str){
@@ -150,12 +116,6 @@ generate_model = function(
   add_script("")
   add_script("  // subject level covariates")
   for(c_name in c_names){
-    # if(missing_info[[c_name]][['is_binary']] == 1){
-    #   data_type = "int<lower = 0, upper = 1>"
-    # }
-    # else{
-    #   data_type = "real"
-    # }
     data_type = "real"
     if(missing_info[[c_name]][['n_mis']] == 0){
       add_script("  ${data_type} ${c_name}[N];")
@@ -177,16 +137,6 @@ generate_model = function(
   for(x_name in x_names){
     add_script("  vector[n] ${x_name};")
   }
-
-  # for subject-level output y
-  # add_script("")
-  # add_script("  // output y")
-  # if(family == "gaussian"){
-  #   add_script("  real y[N];")
-  # }
-  # else{
-  #   add_script("  int y[N];")
-  # }
 
 
   # for response, response time and subject id of each trial
@@ -223,16 +173,6 @@ generate_model = function(
   add_script("")
   add_script("  // group mean and sd of covariates")
   for(c_name in c_names){
-    # if(missing_info[[c_name]][['n_mis']] == 0){
-    #   next
-    # }
-    # # if(missing_info[[c_name]][['is_binary']] == 1){
-    # #   add_script("  real p_${c_name};")
-    # # }
-    # else{
-    #   add_script("  real u_${c_name};")
-    #   add_script("  real<lower = 0> sig_${c_name};")
-    # }
     if(!is.na(primary_outcome) && c_name == primary_outcome){
       next
     }
@@ -245,14 +185,6 @@ generate_model = function(
   # for ddm group-level parameters
   add_script("  ")
   add_script("  // ddm group parameters")
-  # add_script("  real<lower = 0> u_a_0;")
-  # add_script("  real<lower = 0> sig_a_0;")
-  # add_script("  real u_v_0;")
-  # add_script("  real<lower = 0> sig_v_0;")
-  # add_script("  real<lower = 0, upper = 1> u_z_0;")
-  # add_script("  real<lower = 0> sig_z_0;")
-  # add_script("  real<lower = 0> u_t_0;")
-  # add_script("  real<lower = 0> sig_t_0;")
   for(param in c("a", "t", "z", "v")){
     tmp_term = attr(terms(model[[param]]), "term.labels")
     tmp_term = c("0", tmp_term) # this is for intercept
@@ -267,25 +199,6 @@ generate_model = function(
     }
   }
 
-
-  # for subject-level DDM parameters (a_0, z_0, t_0, v_0)
-  # add_script("")
-  # add_script("  // ddm parameters")
-  # add_script("  real a_0[N];")
-  # add_script("  real z_0[N];")
-  # add_script("  real v_0[N];")
-  # add_script("  real t_0[N];")
-  # ugly code to define subject-specific non-decision time t limits (no longer needed)
-  #for(i in 1:N){
-  #  add_script("  real<lower = 0, upper = ${rt_limits[i]}> t_0_${i};")
-  #}
-  # trial-level variables' influence on DDM parameters
-  # for(param in c("a", "t", "z", "v")){
-  #   for(predictor in model[param][[1]]){
-  #     add_script("  real ${param}_${predictor}[N];")
-  #   }
-  # }
-
   # missing data of covariates
   add_script("")
   add_script("  // missing covariate data")
@@ -293,12 +206,6 @@ generate_model = function(
     if(missing_info[[c_name]][['n_mis']] == 0){
       next
     }
-    #if(missing_info[[c_name]][['is_binary']] == 1){
-    #  data_type = "int<lower = 0, upper = 1>"
-    #}
-    #else{
-    #  data_type = "real"
-    #}
     data_type = "real"
     if(missing_info[[c_name]][['n_mis']] == 1){
       add_script("  ${data_type} ${c_name}_mis;")
@@ -316,23 +223,6 @@ generate_model = function(
   add_script("")
   add_script("transformed parameters {")
 
-  # ugly code to define subject-specific non-decision time t limits (no longer needed)
-  #add_script("  vector[N] t_0;")
-  #for(i in 1:N){
-  #  add_script("  t_0[${i}] = t_0_${i};")
-  #}
-
-  # using the ddm_link to link the linear predictor with the ddm parameters
-  # add_script("  // transformation of baseline ddm parameter to apply prior distribution and constraints")
-  # for(param in c("a", "t", "z", "v")){
-  #   add_script("  real${default_ddm_constraints[[param]]} ${param}_0_transformed[N];")
-  # }
-  # add_script("  for(i in 1:N){")
-  # for(param in c("a", "t", "z", "v")){
-  #   add_script("    ${param}_0_transformed[i] = ${ddm_link[[param]]}(${param}_0[i]);")
-  # }
-  # add_script("  }")
-
   # combining the missing and observed covariates
   add_script("  ")
   add_script("  // combining missing and observed covariate data")
@@ -340,12 +230,6 @@ generate_model = function(
     if(missing_info[[c_name]][['n_mis']] == 0){
       next
     }
-    #if(missing_info[[c_name]][['is_binary']] == 1){
-    #  data_type = "int<lower = 0, upper = 1>"
-    #}
-    #else{
-    #  data_type = "real"
-    #}
     data_type = "real"
     add_script("  ${data_type} ${c_name}[N];")
     add_script("  ${c_name}[ii_obs_${c_name}] = ${c_name}_obs;")
@@ -385,19 +269,10 @@ generate_model = function(
   add_script("  ")
   add_script("  // modeling covariates")
   for(c_name in c_names){
-    # if(missing_info[[c_name]][['n_mis']] == 0){
-    #   next
-    # }
     if(!is.na(primary_outcome) && c_name == primary_outcome){
       next
     }
     add_script("  for(i in 1:N){")
-    # if(missing_info[[c_name]][['is_binary']] == 1){
-    #   add_script("    ${c_name}[i] ~ bernoulli(p_${c_name});")
-    # }
-    # else{
-    #   add_script("    ${c_name}[i] ~ normal(u_${c_name}, sig_${c_name});")
-    # }
     add_script("    ${c_name}[i] ~ normal(mu_${c_name}, sigma_${c_name});")
     add_script("  }")
   }
@@ -407,11 +282,6 @@ generate_model = function(
   add_script("  ")
   add_script("  // priors for each subject")
   add_script("  for(i in 1:N){")
-  # add_script("    a_0_transformed[i] ~ normal(u_a_0, sig_a_0);")
-  # add_script("    z_0_transformed[i] ~ normal(u_z_0, sig_z_0);")
-  # add_script("    t_0_transformed[i] ~ normal(u_t_0, sig_t_0);")
-  # add_script("    v_0_transformed[i] ~ normal(u_v_0, sig_v_0);")
-
 
   # and for their sensitivity to changes in the conditions
   for(param in c("a", "t", "z", "v")){
@@ -440,7 +310,6 @@ generate_model = function(
   add_script("    i = id[j];")
   for(param in c("a", "z", "t", "v")){
     tmp_term = attr(terms(model[[param]]), "term.labels")
-    # str = stringr::str_interp("    ${param}[j] = ${ddm_link[[param]]}(${param}_0[i]")
     str = stringr::str_interp("    ${param}[j] = ${param}_0[i]")
     for(predictor in tmp_term){
       tmp_str = stringr::str_c(
@@ -448,7 +317,6 @@ generate_model = function(
       )
       str = stringr::str_c(str, stringr::str_interp(" + ${tmp_str}[j]"))
     }
-    # str = stringr::str_c(str, ");")
     str = stringr::str_c(str, ";")
     str = replace_colon(str)
     add_script(str)
@@ -468,13 +336,6 @@ generate_model = function(
     add_script("  // generalized linear regression part of the model")
     add_script("  real eta[N]; // linear predictor")
     add_script("  for(i in 1:N){")
-    # # previous linear model, no longer needed
-    # str = "    y[i] ~ normal(beta_0"
-    # for(predictor in model$y){
-    #   str = stringr::str_c(str, stringr::str_interp(" + beta_${predictor}*${predictor}[i]"))
-    # }
-    # str = stringr::str_c(str, ", sigma_y);")
-    # add_script(str)
     tmp_term = attr(terms(model[["y"]]), "term.labels")
     str = "    eta[i] = beta_0"
     for(predictor in tmp_term){

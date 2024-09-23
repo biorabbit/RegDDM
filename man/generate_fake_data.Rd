@@ -2,12 +2,12 @@
 % Please edit documentation in R/generate_fake_data.R
 \name{generate_fake_data}
 \alias{generate_fake_data}
-\title{This function generates a fake dataset under different configurations
-It can be used to test the performance of RegDDM under different conditions.
-It is also used in testing the functionality of the package.}
+\title{Generate simulated binary decision data using DDM}
 \usage{
 generate_fake_data(
   N = 20,
+  n_each = 100,
+  n_xvar = 2,
   beta_0 = 0,
   beta_c1 = 0,
   beta_c2 = 0,
@@ -16,13 +16,31 @@ generate_fake_data(
   beta_v_x2 = 0,
   sigma_y = 1,
   sigma_v = 0,
-  n_xvar = 2,
-  n_each = 100,
   y_family = "gaussian"
 )
+}
+\arguments{
+\item{N}{Number of subjects to simulate}
+
+\item{n_each}{Number of trials per subject}
+
+\item{n_xvar}{Number of trial-level variables influencing drift rate}
+
+\item{sigma_y}{Standard deviation of error term of y}
+
+\item{sigma_v}{Contaminant level for drift rate v}
+
+\item{y_family}{Family of distribution of y. Can be either "gaussian", "bernoulli" or "poisson"}
+
+\item{beta_*}{beta_0, beta_c1, beta_c2, beta_v_0, beta_v_x1, beta_v_x2 Relationship between the outcome y, two covariates and three DDM parameters}
 }
 \description{
 This function generates a fake dataset under different configurations
 It can be used to test the performance of RegDDM under different conditions.
 It is also used in testing the functionality of the package.
+}
+\examples{
+## Not run:
+fake_data = generate_fake_data()
+## End(Not run)
 }

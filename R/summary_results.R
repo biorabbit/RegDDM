@@ -2,9 +2,6 @@
 #' Making the results more tidy and easier to use.
 #' @keywords internal
 #' @noRd
-#'
-#'
-#'
 summary_results = function(fit,model,data1){
   res = as.data.frame(rstan::summary(fit)$summary)
   res$variable = rownames(res)

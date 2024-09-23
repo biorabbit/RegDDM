@@ -1,34 +1,21 @@
-#' function to define if a column is continuous
-#' @keywords internal
-#' @noRd
-is_continuous = function(column){
-  if(!is.numeric(column)){
-    return(FALSE)
-  }
-  if(length(na.omit(unique(column))) == 2){
-    return(FALSE)
-  }
-  return(TRUE)
-}
-
-
-#' format the two tables into a list required by rstan
+#' format data1 and data2 into a list as required by rstan
 #' @keywords internal
 #' @noRd
 format_data = function(
     data1,
     data2
 ){
+  # the output list
   out_list = list(
     N = nrow(data1),
     n = nrow(data2),
-    # y = data1$y,
     response = data2$response,
     rt = data2$rt,
-    id = match(data2$id,data1$id)
+    id = match(data2$id,data1$id) # automatically convert the id to consecutive natural numbers
   )
 
   # find a value that does not exist in all data as placeholder for NA
+  # because model.matrix function will delete rows with missing value
   placeholder = 114514
   while(any(sapply(data1, function(x) placeholder %in% x))){
     placeholder = sample.int(999999, size = 1)
@@ -37,18 +24,18 @@ format_data = function(
   # replace NA in continuous variables by a placeholder
   # and NA in catagorical variables by a string "NA"
   for(cov in colnames(data1)){
-    # if(cov == "id" | cov == "y"){
+    # no replacement for id column
     if(cov == "id"){
       next
     }
+
     # for numeric variables that is not binary, replace the missing value with
-    # a placeholder
-    # if(is_continuous(data1[[cov]])){
+    # the placeholder
     if(is.numeric(data1[[cov]])){
       data1[[cov]][is.na(data1[[cov]])] = placeholder
     }
-    # for binary or categorical variables, transform into factors with NA as
-    # a level
+
+    # for factor variables, transform into factors with NA as another level
     else{
       data1[[cov]] = factor(data1[[cov]], exclude = NULL)
     }
@@ -62,14 +49,17 @@ format_data = function(
   data1 = data1[,2:ncol(data1)]
 
   # put all data in the format required by rstan
+  # names for all subject-level variables
   c_names = c()
   for(cov in colnames(data1)){
-    # if(cov == "id" | cov == "y"){
+    # skip id column
     if(cov == "id"){
       next
     }
+
     c_names = c(c_names, cov)
-    # handle missing values separately
+
+    # handling columns with missing data separately.
     n_mis = sum(is.na(data1[[cov]]))
     if(n_mis == 0){
       out_list[[cov]] = data1[[cov]]
@@ -88,6 +78,8 @@ format_data = function(
   # deal with trial-level data.
   data2 = as.data.frame(model.matrix(~., data2))
   data2 = data2[,2:ncol(data2)]
+
+  # names for all trial-level variables
   x_names = c()
 
   for(xvar in colnames(data2)){

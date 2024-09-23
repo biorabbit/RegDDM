@@ -1,12 +1,28 @@
+#' Generate simulated binary decision data using DDM
+#'
+#' @description
 #' This function generates a fake dataset under different configurations
 #' It can be used to test the performance of RegDDM under different conditions.
 #' It is also used in testing the functionality of the package.
 #'
-#'
+#' @param N Number of subjects to simulate
+#' @param n_each Number of trials per subject
+#' @param n_xvar Number of trial-level variables influencing drift rate
+#' @param beta_* beta_0, beta_c1, beta_c2, beta_v_0, beta_v_x1, beta_v_x2 Relationship between the outcome y, two covariates and three DDM parameters
+#' @param sigma_y Standard deviation of error term of y
+#' @param sigma_v Contaminant level for drift rate v
+#' @param y_family Family of distribution of y. Can be either "gaussian", "bernoulli" or "poisson"
 #'
 #' @export
+#'
+#' @examples
+#' ## Not run:
+#' fake_data = generate_fake_data()
+#' ## End(Not run)
 generate_fake_data <- function(
     N = 20,
+    n_each = 100,
+    n_xvar = 2, # number of trial-level variables included
     beta_0 = 0,
     beta_c1 = 0,
     beta_c2 = 0,
@@ -15,8 +31,6 @@ generate_fake_data <- function(
     beta_v_x2 = 0,
     sigma_y = 1,
     sigma_v = 0,
-    n_xvar = 2, # number of trial-level variables included
-    n_each = 100,
     y_family = "gaussian"
 ){
   x1 = runif(n_each*N, -sqrt(3), sqrt(3))

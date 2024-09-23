@@ -4,36 +4,51 @@
 \alias{regddm}
 \title{Bayesian hierachical generalized linear regression using Drift-Diffusion Model}
 \usage{
-regddm(data1, data2, model, family = 'gaussian', ddm_link = "default", init = "default", scale = TRUE, ...)
+regddm(
+  data1,
+  data2,
+  model = list(),
+  family = "gaussian",
+  init = "default",
+  prior = TRUE,
+  stan_filename = "stan_model.stan",
+  gen_model = TRUE,
+  fit_model = TRUE,
+  warmup = 500,
+  iter = 1000,
+  chains = 4,
+  cores = 4,
+  ...
+)
 }
 \arguments{
-\item{data1}{subject-level dataframe. It must contain two columns: \code{id} and \code{y}.}
+\item{data1}{Subject-level dataframe with column such as age and gender. It must contain an \code{id} column unique for each subject.}
 
-\item{data2}{trial-level dataframe. It must contain three columns: \code{id}, \code{response} and \code{rt}.}
+\item{data2}{Trial-level dataframe. It must contain three columns: \code{id}, \code{response} and \code{rt}. It can also contain additional trial-level variables such as experiment condition.}
 
-\item{model}{a list containing 1-5 formulas, specifying the dependence structure between variables.}
+\item{model}{A list containing 0-5 formulas, specifying the dependence structure between variables.}
 
-\item{family}{family of distribution of \code{y}. Can be \code{gaussian}, \code{bernoulli} or \code{poisson}.}
+\item{family}{Family of distribution of \code{y}. Can be \code{gaussian}, \code{bernoulli} or \code{poisson}.}
 
-\item{ddm_link}{either \code{default}, \code{ident} or a named list of strings specifying the structure}
+\item{init}{Either \code{default} or other values supported by rstan (see rstan documentation)}
 
-\item{init}{either \code{default} or other values supported by rstan (see rstan documentation)}
+\item{prior}{Z losigtic value, specifying whether or not to use default prior for DDM parameters. By default, \code{prior} = TRUE.}
 
-\item{prior}{a losigtic value, specifying whether or not to use default prior for DDM parameters where default is TRUE. Improper use of prior distribution may influence model validity.}
-
-\item{stan_filename}{a string specifying the automatically generated stan file name.
+\item{stan_filename}{Z string specifying the automatically generated stan file name.
 if an empty string \code{''} is provided, a temporary file will be created and deleted after the model is fit.}
 
-\item{fit_model}{a logistic value indicating weather or not to fit the model.
+\item{gen_model}{Z logistic value indicating weather or not to generate the model.
+If not, RegDDM will not generate the code but use the existing stan model instead.}
+
+\item{fit_model}{Z logistic value indicating weather or not to fit the model.
 If not, RegDDM will only generate the code and return the data input for stan.}
 
-\item{...}{other parameters sent to rstan package.}
+\item{...}{Other parameters sent to rstan package.}
 }
 \description{
-Use
-}
-\details{
-Additional details...
+\code{regddm} makes it easy to fit a single Bayesian hierarchical drift-diffusion
+model (DDM) that estimates the DDM parameters of each subject and uses the
+estimated parameters as variables in a generalized linear regression.
 }
 \examples{
 ## Not run:
@@ -52,5 +67,5 @@ fit = regddm(
 ## End(Not run)
 }
 \references{
-reference
+To be added
 }
