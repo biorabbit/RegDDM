@@ -34,50 +34,39 @@ First, load the package and the example dataset.
 
 ```{r example}
 library(RegDDM)
-data(regddm_data)
+data(regddm_tutorial)
 ```
 
-`data1` is the subject-level dataset with 49 rows and 4 columns:
+`data1` is the subject-level dataset:
 ```{r}
-head(regddm_data$data1)
+head(regddm_tutorial$data1)
 ```
 
-`data2` is the subject-level dataset with 6032 rows and 4 columns:
+`data2` is the subject-level dataset:
 ```{r}
-head(regddm_data$data2)
+head(regddm_tutorial$data2)
 ```
 
-Specify the model using a list. In this example, we want to study how the memory load of the trial (`memload` variable) influences the drift rate v for each subject differently, and how such influence correlates with the IQ of the subject (`y` variable). Thus, the following model is built:
+Specify the model using a list. In this example, the drift rate is influenced by `x1` and the subject's outcome `y` is predicted by baseline drift rate when `x1` is 0 (`v_0`), the influence of `x1` on drift rate `v_x1` and covariate `c1`:
 
 ```{r, cache = TRUE}
 model = list(
-  v ~ memload,
-  iq ~ v_0 + v_memload + education + age
+  v ~ x1,
+  y ~ v_0 + v_x1 + c1
 )
 ```
 
 Use the main function to automatically generate the stan model and summary the results. This could take ~20 minutes to run. The rows starting with 'beta_' are the posterior distributions of regression parameters:  
 
 ```{r, cache = TRUE, warnings = FALSE}
-data1 = regddm_data$data1 
-data2 = regddm_data$data2
-
 fit = regddm(
-  regddm_data$data1,
-  regddm_data$data2,
-  model,
-  fit_model = TRUE,
-  warmup = 500,
-  iter = 1000
+  regddm_tutorial$data1,
+  regddm_tutorial$data2,
+  model
 )
 ```
 
-In general, higher drift rate will lead to faster and more accurate decision making. 
-Increasing memory load has a negative influence on drift rate, which differs by subjects.
-Based on the result, The more ”negative” such influence is, the lower the IQ of the
-subject. Meanwhile, when experiment condition is neutral, the higher the IQ, the smaller the drift rate.
-In other words, subjects with lower IQ are more susceptible to increased memory
-load, but they perform better at moderate difficulty.
+In conclusion, the outcome is positively correlated with `v_x1` and `c1`. The higher the influence of `x1` and the higher the first covariate, the higher the outcome `y`. 
 
 
 
@@ -95,10 +84,10 @@ If you want to fit the model on your own data, you need to specify `data1`, `dat
 * trial-level variables. These are the variables that differ by trial, such as difficulty of the task or different numbers on the screen. We assume that subjects' behavior changes according to these variables. These variables cannot contain missing values.
 
 `model` is the proposed dependency between these parameters. Default is an empty list. It must be a list of 0 - 5 formulas. The outcome of these formulas can be either:
-* one of the four DDM parameters `a`, `t`, `z`, `v`, modeling the relationship between DDM parameters and trial-level variables.
-* one formula for GLM regression, modeling the relationship between estimated DDM parameters and other subject-level variables. 
+* one of the four DDM parameters `a`, `t`, `z`, `v`, modeling the relationship between DDM parameters and trial-level variables. 
+* one formula for GLM regression, modeling the relationship between estimated DDM parameters and other subject-level variables.
 
-`family` is the family of distribution of GLM. It can be either `"gaussian"`, `"bernoulli"` or `"poisson"`. Default is `"gaussian"`.
+`family` is the family of distribution of GLM. It can be either `"gaussian"`, `"bernoulli"` or `"poisson"`. Default is `"gaussian"`. 
 
 `init` is how we initialize the MCMC algorithm. The `"default"` initialization should work in most conditions
 
