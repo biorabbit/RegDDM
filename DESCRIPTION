@@ -4,8 +4,8 @@ Version: 1.0
 Authors@R: 
     person("Zekai", "Jin", email = "Jin.Zekai@nyspi.columbia.edu", role = c("aut", "cre"))
 Description: 
-    RegDDM fits generalized linear model where predictors are estimated
-    from Drift-Dissufion Model (DDM). Using the Rstan architecture。
+    RegDDM fits generalized linear model where variables are estimated 
+    Drift-Dissufion Model (DDM) parameters, using the Rstan architecture.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

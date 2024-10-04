@@ -73,7 +73,7 @@ check_data = function(
 
   # check the number of trials for each subject
   for(i in data1$id){
-    if(nrow(filter(data2, id == i)) < 10){
+    if(nrow(dplyr::filter(data2, id == i)) < 10){
       warning(paste0("You have subject with less than 10 trials, which may lead to poor model performance\n"))
       break
     }
