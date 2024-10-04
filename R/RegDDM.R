@@ -16,15 +16,21 @@
 #'        If not, RegDDM will not generate the code but use the existing stan model instead.
 #' @param fit_model Z logistic value indicating weather or not to fit the model.
 #'        If not, RegDDM will only generate the code and return the data input for stan.
+#' @param warmup Number of warm-up iterations. Default is 500.
+#' @param iter Number of iterations, which must be greater than warmup. Default is 500.
+#' @param chains Number of chains to run for diagnosis. Default is 4.
+#' @param cores Number of cores to run the chains. It is best to make `cores = chains`.  Default is 4.
 #' @param ... Other parameters sent to rstan package.
 #'
+#' @import stats
+#' @importFrom rlang .data
 #'
 #' @export
 #'
 #' @references To be added
 #'
 #' @examples
-#' ## Not run:
+#' \dontrun{
 #' # example analysis of Cognitive Reserve Study dataset.
 #' data(regddm_tutorial)
 #' model = list(v ~ x1, y ~ v_0 + v_x1 + c1)
@@ -34,7 +40,7 @@
 #'   model,
 #'   stan_filename = ""
 #' )
-#' ## End(Not run)
+#' }
 regddm = function(
     data1,
     data2,
@@ -65,7 +71,7 @@ regddm = function(
       next
     }
     if(!tmp_col %in% used_vars){
-      data2 = dplyr::select(data2, -all_of(tmp_col))
+      data2 = dplyr::select(data2, -dplyr::all_of(tmp_col))
     }
   }
   for(tmp_col in colnames(data1)){
@@ -73,7 +79,7 @@ regddm = function(
       next
     }
     if(!tmp_col %in% used_vars){
-      data1 = dplyr::select(data1, -all_of(tmp_col))
+      data1 = dplyr::select(data1, -dplyr::all_of(tmp_col))
     }
   }
 

@@ -6,12 +6,5 @@ traceplot = function(object, ...){
 }
 
 
-#' @importFrom rstan summary
-#' @export
-rstan_summary = function(object, ...){
-  return(rstan::summary(object$stan_fit, ...))
-}
-
-
 
 

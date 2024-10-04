@@ -8,7 +8,12 @@
 #' @param N Number of subjects to simulate
 #' @param n_each Number of trials per subject
 #' @param n_xvar Number of trial-level variables influencing drift rate
-#' @param beta_* beta_0, beta_c1, beta_c2, beta_v_0, beta_v_x1, beta_v_x2 Relationship between the outcome y, two covariates and three DDM parameters
+#' @param beta_0 Intercept
+#' @param beta_c1 Slope of c1
+#' @param beta_c2 Slope of c2
+#' @param beta_v_0 Slope of v_0
+#' @param beta_v_x1 Slope of v_x1
+#' @param beta_v_x2 Slope of v_x2
 #' @param sigma_y Standard deviation of error term of y
 #' @param sigma_v Contaminant level for drift rate v
 #' @param y_family Family of distribution of y. Can be either "gaussian", "bernoulli" or "poisson"
@@ -50,17 +55,22 @@ generate_fake_data <- function(
       v_x2 = rnorm(N)*ifelse(n_xvar == 2, 1, 0) # second trial-level variable
     )
 
+  # used to eliminate the notes in R CMD check
+  random_number = 0
+  p = 0
+  lambda = 0
+
   # generate y based on the family of distribution
   if(y_family == "gaussian"){
     data1_true = dplyr::mutate(
       data1_true,
-      y = rep(beta_0, N) + beta_c1*c1 + beta_c2*c2 + beta_v_0*v_0 + beta_v_x1*v_x1 + beta_v_x2*v_x2 + rnorm(N, 0, sigma_y)
+      y = rep(beta_0, N) + beta_c1*.data$c1 + beta_c2*.data$c2 + beta_v_0*.data$v_0 + beta_v_x1*.data$v_x1 + beta_v_x2*.data$v_x2 + rnorm(N, 0, sigma_y)
     )
   }
   else if(y_family == "bernoulli"){
     data1_true = dplyr::mutate(
       data1_true,
-      p = rep(beta_0, N) + beta_c1*c1 + beta_c2*c2 + beta_v_0*v_0 + beta_v_x1*v_x1 + beta_v_x2*v_x2,
+      p = rep(beta_0, N) + beta_c1*.data$c1 + beta_c2*.data$c2 + beta_v_0*.data$v_0 + beta_v_x1*.data$v_x1 + beta_v_x2*.data$v_x2,
       p = 1/(1+exp(-p)),
       random_number = runif(N),
       y = ifelse(random_number < p, 1, 0)
@@ -69,7 +79,7 @@ generate_fake_data <- function(
   else if(y_family == "poisson"){
     data1_true = dplyr::mutate(
       data1_true,
-      lambda = rep(beta_0, N) + beta_c1*c1 + beta_c2*c2 + beta_v_0*v_0 + beta_v_x1*v_x1 + beta_v_x2*v_x2,
+      lambda = rep(beta_0, N) + beta_c1*.data$c1 + beta_c2*.data$c2 + beta_v_0*.data$v_0 + beta_v_x1*.data$v_x1 + beta_v_x2*.data$v_x2,
       lambda = exp(lambda),
       y = purrr::map_dbl(.x = lambda, ~rpois(1, .x))
     )
@@ -105,21 +115,21 @@ generate_fake_data <- function(
       v_0 = rep(data1_true$v_0, each = n_each),
       v_x1 = rep(data1_true$v_x1, each = n_each),
       v_x2 = rep(data1_true$v_x2, each = n_each),
-      v = purrr::pmap_dbl(list(v_0, v_x1, v_x2, x1, x2), calc_v),
-      ddm = purrr::pmap(list(a,z,t,v), r_ddm)
+      v = purrr::pmap_dbl(list(.data$v_0, .data$v_x1, .data$v_x2, .data$x1, .data$x2), calc_v),
+      ddm = purrr::pmap(list(.data$a, .data$z, .data$t, .data$v), r_ddm)
     )
 
   data2_true =
-    tidyr::unnest(data2_true, ddm)
+    tidyr::unnest(data2_true, .data$ddm)
 
   data2_true =
     dplyr::mutate(
       data2_true,
-      response = ifelse(response == "upper", 1, 0)
+      response = ifelse(.data$response == "upper", 1, 0)
     )
 
-  data1 = dplyr::select(data1_true, id, y, c1, c2)
-  data2 = dplyr::select(data2_true, id, x1, x2, rt, response)
+  data1 = dplyr::select(data1_true, .data$id, .data$y, .data$c1, .data$c2)
+  data2 = dplyr::select(data2_true, .data$id, .data$x1, .data$x2, .data$rt, .data$response)
 
   return(list(
     data1 = data1,

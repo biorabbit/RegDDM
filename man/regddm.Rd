@@ -43,6 +43,14 @@ If not, RegDDM will not generate the code but use the existing stan model instea
 \item{fit_model}{Z logistic value indicating weather or not to fit the model.
 If not, RegDDM will only generate the code and return the data input for stan.}
 
+\item{warmup}{Number of warm-up iterations. Default is 500.}
+
+\item{iter}{Number of iterations, which must be greater than warmup. Default is 500.}
+
+\item{chains}{Number of chains to run for diagnosis. Default is 4.}
+
+\item{cores}{Number of cores to run the chains. It is best to make \code{cores = chains}.  Default is 4.}
+
 \item{...}{Other parameters sent to rstan package.}
 }
 \description{
@@ -51,20 +59,17 @@ model (DDM) that estimates the DDM parameters of each subject and uses the
 estimated parameters as variables in a generalized linear regression.
 }
 \examples{
-## Not run:
+\dontrun{
 # example analysis of Cognitive Reserve Study dataset.
-data(regddm_data)
-data1 = regddm_data$data1
-data2 = regddm_data$data2
-model = list(v ~ memload, y ~ v_0 + v_memload + age + education)
+data(regddm_tutorial)
+model = list(v ~ x1, y ~ v_0 + v_x1 + c1)
 fit = regddm(
-  regddm_data$data1,
-  regddm_data$data2,
+  regddm_tutorial$data1,
+  regddm_tutorial$data2,
   model,
-  warmup = 500,
-  iter = 1000
+  stan_filename = ""
 )
-## End(Not run)
+}
 }
 \references{
 To be added

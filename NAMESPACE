@@ -2,8 +2,7 @@
 
 export(generate_fake_data)
 export(regddm)
-export(rstan_summary)
 export(traceplot)
-importFrom(rstan,summary)
-importFrom(rstan,traceplot)
 import(stats)
+importFrom(rlang,.data)
+importFrom(rstan,traceplot)

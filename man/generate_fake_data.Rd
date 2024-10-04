@@ -5,7 +5,7 @@
 \title{Generate simulated binary decision data using DDM}
 \usage{
 generate_fake_data(
-  N = 20,
+  N = 30,
   n_each = 100,
   n_xvar = 2,
   beta_0 = 0,
@@ -26,13 +26,23 @@ generate_fake_data(
 
 \item{n_xvar}{Number of trial-level variables influencing drift rate}
 
+\item{beta_0}{Intercept}
+
+\item{beta_c1}{Slope of c1}
+
+\item{beta_c2}{Slope of c2}
+
+\item{beta_v_0}{Slope of v_0}
+
+\item{beta_v_x1}{Slope of v_x1}
+
+\item{beta_v_x2}{Slope of v_x2}
+
 \item{sigma_y}{Standard deviation of error term of y}
 
 \item{sigma_v}{Contaminant level for drift rate v}
 
 \item{y_family}{Family of distribution of y. Can be either "gaussian", "bernoulli" or "poisson"}
-
-\item{beta_*}{beta_0, beta_c1, beta_c2, beta_v_0, beta_v_x1, beta_v_x2 Relationship between the outcome y, two covariates and three DDM parameters}
 }
 \description{
 This function generates a fake dataset under different configurations

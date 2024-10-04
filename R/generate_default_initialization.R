@@ -22,7 +22,7 @@ generate_default_initialization = function(data1, data2, model){
   # Note that baseline non-decision time needs special treatment.
   # They start from half of the minimal reaction time of each subject.
   init_list[["t_0"]] = rep(NA, N)
-  min_reaction_time = dplyr::summarise(dplyr::group_by(data2, id), rt = min(rt))
+  min_reaction_time = dplyr::summarise(dplyr::group_by(data2, .data$id), rt = min(.data$rt))
   for(i in 1:N){
     init_list[["t_0"]][i] = as.numeric(min_reaction_time[i,2]/2)
   }

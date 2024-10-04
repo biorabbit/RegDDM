@@ -6,28 +6,28 @@ summary_results = function(fit,model,data1){
   res = as.data.frame(rstan::summary(fit)$summary)
   res$variable = rownames(res)
   res = dplyr::tibble(res)
-  res = dplyr::select(res, variable, everything())
+  res = dplyr::select(res, .data$variable, dplyr::everything())
 
   extract_subject_ddm = function(statistics){
     subject_ddm =
-      dplyr::filter(res, stringr::str_detect(variable, "^[atzv]_.+\\[\\d+\\]$"))
+      dplyr::filter(res, stringr::str_detect(.data$variable, "^[atzv]_.+\\[\\d+\\]$"))
 
     subject_ddm =
       dplyr::mutate(
         subject_ddm,
-        variable = stringr::str_remove(variable, "\\[\\d+\\]"),
+        variable = stringr::str_remove(.data$variable, "\\[\\d+\\]"),
         id = rep(data1$id,times = nrow(subject_ddm)/nrow(data1))
       )
     subject_ddm =
-      dplyr::select(subject_ddm, id, !!rlang::sym(statistics), variable)
+      dplyr::select(subject_ddm, .data$id, !!rlang::sym(statistics), .data$variable)
     subject_ddm =
-      tidyr::pivot_wider(subject_ddm, names_from = variable, values_from = !!rlang::sym(statistics))
+      tidyr::pivot_wider(subject_ddm, names_from = .data$variable, values_from = !!rlang::sym(statistics))
 
     return(subject_ddm)
   }
 
   glm_coefficiets =
-    dplyr::filter(res, stringr::str_detect(variable, "^beta_") | stringr::str_detect(variable, "^sigma$"))
+    dplyr::filter(res, stringr::str_detect(.data$variable, "^beta_") | stringr::str_detect(.data$variable, "^sigma$"))
 
   subject_ddm_param = list(
     mean = extract_subject_ddm("mean"),
@@ -39,12 +39,12 @@ summary_results = function(fit,model,data1){
 
   group_param = dplyr::filter(
     res,
-    stringr::str_detect(variable,"^(mu|sigma)_.+$")
+    stringr::str_detect(.data$variable,"^(mu|sigma)_.+$")
   )
 
   missing_value = dplyr::filter(
     res,
-    stringr::str_detect(variable,"^.+_mis.*$")
+    stringr::str_detect(.data$variable,"^.+_mis.*$")
   )
 
   max_r_hat = max(res$Rhat)
