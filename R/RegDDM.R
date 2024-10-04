@@ -26,16 +26,13 @@
 #' @examples
 #' ## Not run:
 #' # example analysis of Cognitive Reserve Study dataset.
-#' data(regddm_data)
-#' data1 = regddm_data$data1
-#' data2 = regddm_data$data2
-#' model = list(v ~ memload, y ~ v_0 + v_memload + age + education)
+#' data(regddm_tutorial)
+#' model = list(v ~ x1, y ~ v_0 + v_x1 + c1)
 #' fit = regddm(
-#'   regddm_data$data1,
-#'   regddm_data$data2,
+#'   regddm_tutorial$data1,
+#'   regddm_tutorial$data2,
 #'   model,
-#'   warmup = 500,
-#'   iter = 1000
+#'   stan_filename = ""
 #' )
 #' ## End(Not run)
 regddm = function(
@@ -114,6 +111,9 @@ regddm = function(
 
   # fit the stan model, if not, return the data input for stan
   if(!fit_model){
+    if(delete_flag){
+      file.remove(stan_filename)
+    }
     return(stan_data)
   }
 

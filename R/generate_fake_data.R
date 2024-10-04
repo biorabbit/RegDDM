@@ -20,7 +20,7 @@
 #' fake_data = generate_fake_data()
 #' ## End(Not run)
 generate_fake_data <- function(
-    N = 20,
+    N = 30,
     n_each = 100,
     n_xvar = 2, # number of trial-level variables included
     beta_0 = 0,

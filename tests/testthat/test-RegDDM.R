@@ -2,176 +2,194 @@
 # some tests will not be performed on CRAN but locally.
 test_that("example code works", {
   skip_on_cran()
-  data(regddm_data)
-  data1 = regddm_data$data1
-  data2 = regddm_data$data2
-  model = list(v ~ memload, y ~ v_0 + v_memload + age + education)
-  fit = regddm(
-    regddm_data$data1,
-    regddm_data$data2,
-    model,
-    fit_model = FALSE,
-    warmup = 500,
-    iter = 1000
+  data(regddm_tutorial)
+  model = list(v ~ x1, y ~ v_0 + v_x1 + c1)
+  expect_no_error(
+    regddm(
+      regddm_tutorial$data1,
+      regddm_tutorial$data2,
+      model,
+      stan_filename = ""
+    )
   )
 })
 
 
 test_that("data check works", {
-  data("regddm_data")
-  data1 = regddm_data$data1
-  data2 = regddm_data$data2
-  model = list(
-    v ~ memload,
-    y ~ v_memload + v_0 + age + education
-  )
+  data("regddm_tutorial")
 
   # test that duplicate id will trigger an error
-  data1_test = data1
-  data2_test = data2
-  data1_test$id[1:2] = c(1,1)
-  expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
+  data1 = regddm_tutorial$data1
+  data2 = regddm_tutorial$data2
+  data1$id[1:2] = c(1,1)
+  model = list()
+  expect_error(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
 
-  # test that missing required columns will trigger an error
-  data1_test = dplyr::select(data1, -id)
-  expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
+  # test that missing id will trigger an error
+  data1 = dplyr::select(regddm_tutorial$data1, -id)
+  expect_error(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
 
-  data1_test = dplyr::select(data1, -y)
-  expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
+  data1 = regddm_tutorial$data1
+  data2 = dplyr::select(regddm_tutorial$data2, -id)
+  expect_error(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
 
-  data1_test = data1
-  data2_test = dplyr::select(data2, -id)
-  expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
+  data2 = dplyr::select(regddm_tutorial$data2, -rt)
+  expect_error(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
 
-  data2_test = dplyr::select(data2, -rt)
-  expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
-
-  data2_test = dplyr::select(data2, -response)
-  expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
+  data2 = dplyr::select(regddm_tutorial$data2, -response)
+  expect_error(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
 
   # test that improper coding of response will trigger an error
-  data2_test = dplyr::mutate(data2, response = ifelse(response == 1, "upper", "lower"))
-  expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
+  data2 = dplyr::mutate(regddm_tutorial$data2, response = ifelse(response == 1, "upper", "lower"))
+  expect_error(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
 
   # test that abnormal value of response time rt will trigger an warning
-  data2_test = dplyr::mutate(data2, rt = rt* 100)
-  expect_warning(regddm(data1_test, data2_test, model, fit_model = FALSE))
+  data2 = dplyr::mutate(regddm_tutorial$data2, rt = rt* 100)
+  expect_warning(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
 
   # test that missing values in data2 will trigger an error
-  data2_test = data2
-  data2_test[["memload"]][1] = NA
-  expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
+  data2 = regddm_tutorial$data2
+  data2[["x1"]][1] = NA
+  model = list(v ~ x1)
+  expect_error(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
 
   # test that data1 and data2 must have exactly the same subjects
-  data1_test = data1
-  data1_test[["id"]][1] = 1
-  data2_test = data2
-  expect_error(regddm(data1_test, data2_test, model, fit_model = FALSE))
+  data1 = regddm_tutorial$data1
+  data2 = regddm_tutorial$data2
+  data1[["id"]][1] = 1001
+  expect_error(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
 
 })
 
-test_that("model check works"){
+test_that("model check works", {
 
-  data("regddm_data")
-  data1 = regddm_data$data1
-  data2 = regddm_data$data2
+  data("regddm_tutorial")
+  data1 = regddm_tutorial$data1
+  data2 = regddm_tutorial$data2
 
   # check that including a covariate that does not exist will trigger an error
-  model_test = list(
-    v ~ memload,
-    y ~ v_memload + v_0 + age + education + c1
+  model = list(
+    y ~ c3
   )
-  expect_error(regddm(data1, data2, model_test, fit_model = FALSE))
+  expect_error(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
 
   # check that including a non-existing trial level variable will trigger an error
-  model_test = list(
-    v ~ memload + x1,
-    y ~ v_memload + v_0 + age + education
+  model = list(
+    v ~ x3
   )
-  expect_error(regddm(data1, data2, model_test, fit_model = FALSE))
-}
+  expect_error(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
+
+  # check that improper naming of variables will trigger an error
+  data1 = dplyr::rename(regddm_tutorial$data1, v_0 = c1)
+  model = list(y ~ v_0)
+  expect_error(regddm(data1, data2, model, fit_model = FALSE, stan_filename = ""))
+
+})
 
 test_that("fake data generation works", {
   expect_no_error(
     generate_fake_data()
   )
+  expect_no_error(
+    generate_fake_data(y_family = "bernoulli", n = 50, n_each = 50)
+  )
+  expect_no_error(
+    generate_fake_data(y_family = "poisson", n_xvar = 0, beta_v_0 = 1, sigma_v = 0.3)
+  )
 })
 
-
-test_that("missing covariates modeling works", {
-  skip_on_cran()
-  fake_data = generate_fake_data(N = 5, n_xvar = 0, n_each = 50)
-  # convert continuous predictor to binary one to test missing value modeling in both conditions
-  data1 = fake_data[["data1"]]
-  data1[["c1"]][1:2] = c(NA, NA)
-  data1[["c2"]][2] = NA
-  data2 = fake_data[["data2"]]
-  model = list(y ~ 1)
-  expect_no_error(regddm(data1, data2, model))
-})
 
 test_that("model with interaction works", {
   skip_on_cran()
-  fake_data = generate_fake_data(N = 50, n_xvar = 2, n_each = 100)
-  data1 = fake_data[["data1"]]
-  data2 = fake_data[["data2"]]
+
+  # interaction in trial-level variable
+  fake_data = generate_fake_data(N = 30, n_xvar = 2, n_each = 100)
   model = list(
     v ~ x1 * x2,
-    y ~ v_x1*c1 + v_x2*c2 + v_x1_x2
+    y ~ v_0 + v_x1_x2
   )
-  expect_no_error(regddm(data1, data2, model))
+  expect_no_error(
+    regddm(fake_data$data1, fake_data$data2, model, stan_filename = "")
+  )
 
+  # interaction in subject-level variable
+  fake_data = generate_fake_data(N = 30, n_xvar = 1, n_each = 100)
+  model = list(
+    v ~ x1,
+    y ~ v_0 + v_x1 * c1
+  )
+  expect_no_error(
+    regddm(fake_data$data1, fake_data$data2, model, stan_filename = "")
+  )
 })
+
 
 test_that("model works for factor variables in both data1 and data2", {
   skip_on_cran()
-  # binary data is treated as factors
-  fake_data = generate_fake_data(N = 50, n_xvar = 1, n_each = 100)
-  data1 = dplyr::mutate(fake_data[["data1"]], c1 = factor(ifelse(c1 > 0, 1, 0)))
-  data2 = dplyr::mutate(fake_data[["data2"]], x1 = factor(ifelse(x1 > 0, 1, 0)))
+  data("regddm_tutorial")
+
+  # factor in trial-level variable
   model = list(
-    v ~ x1,
-    y ~ v_x1*c1 + v_x1 * c2
+    v ~ x2,
+    y ~ v_0 + v_x2
   )
-  expect_no_error(regddm(data1, data2, model))
+  expect_no_error(
+    regddm(regddm_tutorial$data1, regddm_tutorial$data2, model, stan_filename = "")
+  )
+
+  # factor in subject-level variable
+  model = list(
+    y ~ v_0 * c2
+  )
+  expect_no_error(
+    regddm(regddm_tutorial$data1, regddm_tutorial$data2, model, stan_filename = "")
+  )
 
 })
 
 
 test_that("model works for Bernoulli and Poisson family", {
   skip_on_cran()
-  # for bernoulli family, more subject is required
-  fake_data = generate_fake_data(N = 100, n_xvar = 0, n_each = 30, family = "bernoulli")
-  data1 = fake_data[["data1"]]
-  data2 = fake_data[["data2"]]
-  model = list(y ~ v_0 + c1)
-  expect_no_error(regddm(data1, data2, model, family = "bernoulli"))
 
+  # for bernoulli family
+  fake_data = generate_fake_data(N = 100, n_xvar = 0, n_each = 50, y_family = "bernoulli")
+  model = list(y ~ v_0)
+  expect_no_error(
+    regddm(fake_data$data1, fake_data$data2, model, stan_filename = "", family = "bernoulli")
+  )
 
-  fake_data = generate_fake_data(N = 50, n_xvar = 0, n_each = 50, family = "poisson")
-  data1 = fake_data[["data1"]]
-  data2 = fake_data[["data2"]]
-  model = list(y ~ v_0 + c1)
-  expect_no_error(regddm(data1, data2, model, family = "poisson"))
+  # for poisson family
+  fake_data = generate_fake_data(N = 50, n_xvar = 0, n_each = 50, y_family = "poisson")
+  model = list(y ~ v_0)
+  expect_no_error(
+    regddm(fake_data$data1, fake_data$data2, model, stan_filename = "", family = "poisson")
+  )
 
 })
 
-test_that("model works for identical ddm link function", {
+
+test_that("model works for DDM parameter as outcome", {
   skip_on_cran()
   fake_data = generate_fake_data(N = 50, n_xvar = 0, n_each = 50)
-  data1 = fake_data[["data1"]]
-  data2 = fake_data[["data2"]]
-  model = list(y ~ v_0 + c1)
-  expect_no_error(regddm(data1, data2, model, ddm_link = "ident"))
+  model = list(v_0 ~ c1 + a_0)
+  expect_no_error(regddm(fake_data$data1, fake_data$data2, model, stan_filename = ""))
 })
+
 
 test_that("model works with prior = FALSE", {
+  data("regddm_tutorial")
   skip_on_cran()
-  fake_data = generate_fake_data(N = 50, n_xvar = 0, n_each = 50)
-  data1 = fake_data[["data1"]]
-  data2 = fake_data[["data2"]]
-  model = list(y ~ v_0 + c1)
-  expect_no_error(regddm(data1, data2, model, prior = FALSE))
+
+  model = list(v ~ x1, y ~ v_0 + v_x1 + c1)
+  expect_no_error(
+    regddm(
+      regddm_tutorial$data1,
+      regddm_tutorial$data2,
+      model,
+      stan_filename = "",
+      prior =  FALSE
+    )
+  )
 })
 
 

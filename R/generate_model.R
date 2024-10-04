@@ -116,7 +116,13 @@ generate_model = function(
   add_script("")
   add_script("  // subject level covariates")
   for(c_name in c_names){
-    data_type = "real"
+    if(!is.na(primary_outcome) && c_name == primary_outcome && family %in% c("bernoulli", "poisson")){
+      data_type = "int"
+    }
+    else{
+      data_type = "real"
+    }
+
     if(missing_info[[c_name]][['n_mis']] == 0){
       add_script("  ${data_type} ${c_name}[N];")
       next
