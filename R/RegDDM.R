@@ -9,12 +9,12 @@
 #' @param model A list containing 0-5 formulas, specifying the dependence structure between variables.
 #' @param family Family of distribution of `y`. Can be `gaussian`, `bernoulli` or `poisson`.
 #' @param init Either `default` or other values supported by rstan (see rstan documentation)
-#' @param prior Z losigtic value, specifying whether or not to use default prior for DDM parameters. By default, `prior` = TRUE.
-#' @param stan_filename Z string specifying the automatically generated stan file name.
-#'        if an empty string `''` is provided, a temporary file will be created and deleted after the model is fit.
-#' @param gen_model Z logistic value indicating weather or not to generate the model.
+#' @param prior A losigtic value, specifying whether or not to use default prior for DDM parameters. By default, `prior` = TRUE.
+#' @param stan_filename A string specifying the automatically generated stan file name.
+#'        By default, an empty string `''` is provided. A temporary file will be created and deleted after the model is fit.
+#' @param gen_model A logistic value indicating weather or not to generate the model.
 #'        If not, RegDDM will not generate the code but use the existing stan model instead.
-#' @param fit_model Z logistic value indicating weather or not to fit the model.
+#' @param fit_model A logistic value indicating weather or not to fit the model.
 #'        If not, RegDDM will only generate the code and return the data input for stan.
 #' @param warmup Number of warm-up iterations. Default is 500.
 #' @param iter Number of iterations, which must be greater than warmup. Default is 500.
@@ -48,7 +48,7 @@ regddm = function(
     family = "gaussian",
     init = "default",
     prior = TRUE,
-    stan_filename = "stan_model.stan",
+    stan_filename = "",
     gen_model = TRUE,
     fit_model = TRUE,
     warmup = 500,
@@ -57,6 +57,11 @@ regddm = function(
     cores = 4,
     ...
 ){
+  # If we don't generate the model, the stan_filename must be provided
+  if(gen_model == FALSE & stan_filename == ""){
+    stop("if gen_model == FALSE, must provide stan_filename for the stan model")
+  }
+
   # convert all non-numeric columns into factors
   data1 = dplyr::mutate(data1, dplyr::across(dplyr::where(~ !is.numeric(.)), as.factor))
   data2 = dplyr::mutate(data2, dplyr::across(dplyr::where(~ !is.numeric(.)), as.factor))
@@ -98,7 +103,7 @@ regddm = function(
   # see if the automatically generated file should be deleted
   delete_flag = FALSE
   if(stan_filename == ""){
-    stan_filename = stringr::str_c(sample.int(999999, size = 1),"_stan_model_tmp.stan")
+    stan_filename = stringr::str_c(tempdir(), "\\", sample.int(999999, size = 1),"_stan_model_tmp.stan")
     delete_flag = TRUE
   }
 
