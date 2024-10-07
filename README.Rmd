@@ -49,7 +49,7 @@ head(regddm_tutorial$data2)
 
 Specify the model using a list. In this example, the drift rate is influenced by `x1` and the subject's outcome `y` is predicted by baseline drift rate when `x1` is 0 (`v_0`), the influence of `x1` on drift rate `v_x1` and covariate `c1`:
 
-```{r, cache = TRUE}
+```{r}
 model = list(
   v ~ x1,
   y ~ v_0 + v_x1 + c1
@@ -58,7 +58,7 @@ model = list(
 
 Use the main function to automatically generate the stan model and summary the results. This could take ~20 minutes to run. The rows starting with 'beta_' are the posterior distributions of regression parameters:  
 
-```{r, cache = TRUE, warnings = FALSE}
+```{r}
 fit = regddm(
   regddm_tutorial$data1,
   regddm_tutorial$data2,

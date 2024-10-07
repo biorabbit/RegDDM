@@ -86,8 +86,7 @@ generate_fake_data <- function(
   }
 
   # generating the trial-level data
-  data2_true = dplyr::bind_cols(x1, x2)
-  colnames(data2_true) = c("x1", "x2")
+  data2_true = dplyr::tibble(x1 = x1, x2 = x2)
 
   # this function calculates drift rate given trial-level variables
   # by default, we assume the drift rate to be fully determined (sigma_v = 0)
@@ -120,7 +119,7 @@ generate_fake_data <- function(
     )
 
   data2_true =
-    tidyr::unnest(data2_true, .data$ddm)
+    tidyr::unnest(data2_true, "ddm")
 
   data2_true =
     dplyr::mutate(
@@ -128,8 +127,8 @@ generate_fake_data <- function(
       response = ifelse(.data$response == "upper", 1, 0)
     )
 
-  data1 = dplyr::select(data1_true, .data$id, .data$y, .data$c1, .data$c2)
-  data2 = dplyr::select(data2_true, .data$id, .data$x1, .data$x2, .data$rt, .data$response)
+  data1 = dplyr::select(data1_true, "id", "y", "c1", "c2")
+  data2 = dplyr::select(data2_true, "id", "response", "rt", "x1", "x2")
 
   return(list(
     data1 = data1,

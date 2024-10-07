@@ -6,7 +6,7 @@ summary_results = function(fit,model,data1){
   res = as.data.frame(rstan::summary(fit)$summary)
   res$variable = rownames(res)
   res = dplyr::tibble(res)
-  res = dplyr::select(res, .data$variable, dplyr::everything())
+  res = dplyr::select(res, "variable", dplyr::everything())
 
   extract_subject_ddm = function(statistics){
     subject_ddm =
@@ -19,7 +19,7 @@ summary_results = function(fit,model,data1){
         id = rep(data1$id,times = nrow(subject_ddm)/nrow(data1))
       )
     subject_ddm =
-      dplyr::select(subject_ddm, .data$id, !!rlang::sym(statistics), .data$variable)
+      dplyr::select(subject_ddm, "id", !!rlang::sym(statistics), "variable")
     subject_ddm =
       tidyr::pivot_wider(subject_ddm, names_from = .data$variable, values_from = !!rlang::sym(statistics))
 

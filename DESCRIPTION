@@ -4,8 +4,13 @@ Version: 1.0
 Authors@R: 
     person("Zekai", "Jin", email = "Jin.Zekai@nyspi.columbia.edu", role = c("aut", "cre"))
 Description: 
-    RegDDM fits generalized linear model where variables are estimated 
-    Drift-Dissufion Model (DDM) parameters, using the Rstan architecture.
+    Drift-Dissufion Model (DDM) has been widely used to model binary decision-making
+    tasks, and many research studies the relationship between DDM parameters and
+    other characteristcs of the subject. This package uses RStan to perform 
+    generalized liner regression analysis over DDM parameters via a single 
+    Bayesian Hierarchical model. Compared to estimating DDM parameters followed 
+    by a separate regression model, RegDDM reduces bias and improves statistical
+    power.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

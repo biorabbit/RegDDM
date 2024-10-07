@@ -11,7 +11,7 @@ regddm(
   family = "gaussian",
   init = "default",
   prior = TRUE,
-  stan_filename = "stan_model.stan",
+  stan_filename = "",
   gen_model = TRUE,
   fit_model = TRUE,
   warmup = 500,
@@ -32,15 +32,15 @@ regddm(
 
 \item{init}{Either \code{default} or other values supported by rstan (see rstan documentation)}
 
-\item{prior}{Z losigtic value, specifying whether or not to use default prior for DDM parameters. By default, \code{prior} = TRUE.}
+\item{prior}{A losigtic value, specifying whether or not to use default prior for DDM parameters. By default, \code{prior} = TRUE.}
 
-\item{stan_filename}{Z string specifying the automatically generated stan file name.
-if an empty string \code{''} is provided, a temporary file will be created and deleted after the model is fit.}
+\item{stan_filename}{A string specifying the automatically generated stan file name.
+By default, an empty string \code{''} is provided. A temporary file will be created and deleted after the model is fit.}
 
-\item{gen_model}{Z logistic value indicating weather or not to generate the model.
+\item{gen_model}{A logistic value indicating weather or not to generate the model.
 If not, RegDDM will not generate the code but use the existing stan model instead.}
 
-\item{fit_model}{Z logistic value indicating weather or not to fit the model.
+\item{fit_model}{A logistic value indicating weather or not to fit the model.
 If not, RegDDM will only generate the code and return the data input for stan.}
 
 \item{warmup}{Number of warm-up iterations. Default is 500.}
