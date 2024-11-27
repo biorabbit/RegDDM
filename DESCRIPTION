@@ -6,10 +6,10 @@ Authors@R:
 Description: 
     Drift-Diffusion Model (DDM) has been widely used to model binary decision-making
     tasks, and many research studies the relationship between DDM parameters and
-    other characteristics of the subject. This package uses RStan to perform 
+    other characteristics of the subject. This package uses "RStan" to perform 
     generalized liner regression analysis over DDM parameters via a single 
     Bayesian Hierarchical model. Compared to estimating DDM parameters followed 
-    by a separate regression model, RegDDM reduces bias and improves statistical
+    by a separate regression model, "RegDDM" reduces bias and improves statistical
     power.
 License: GPL (>= 3)
 Encoding: UTF-8

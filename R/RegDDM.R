@@ -8,7 +8,7 @@
 #' @param data2 Trial-level dataframe. It must contain three columns: `id`, `response` and `rt`. It can also contain additional trial-level variables such as experiment condition.
 #' @param model A list containing 0-5 formulas, specifying the dependence structure between variables.
 #' @param family Family of distribution of `y`. Can be `gaussian`, `bernoulli` or `poisson`.
-#' @param init Either `default` or other values supported by rstan (see rstan documentation)
+#' @param init Either `default` or other values supported by \code{\link[rstan]{stan}} function of \pkg{RStan}
 #' @param prior A losigtic value, specifying whether or not to use default prior for DDM parameters. By default, `prior` = TRUE.
 #' @param stan_filename A string specifying the automatically generated stan file name.
 #'        By default, an empty string `''` is provided. A temporary file will be created and deleted after the model is fit.
@@ -20,8 +20,8 @@
 #' @param iter Number of iterations, which must be greater than warmup. Default is 500.
 #' @param chains Number of chains to run for diagnosis. Default is 4.
 #' @param cores Number of cores to run the chains. It is best to make `cores = chains`.  Default is 4.
-#' @param ... Other parameters sent to rstan package.
-#'
+#' @param ... Other parameters sent to \code{\link[rstan]{stan}} function of \pkg{RStan}.
+#' @return A list containing the posterior summary statistics, the maximum R-hat statistic and a \code{\link[rstan]{stanfit}} object.
 #' @import stats
 #' @importFrom rlang .data
 #'

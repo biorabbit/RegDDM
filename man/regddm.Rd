@@ -30,7 +30,7 @@ regddm(
 
 \item{family}{Family of distribution of \code{y}. Can be \code{gaussian}, \code{bernoulli} or \code{poisson}.}
 
-\item{init}{Either \code{default} or other values supported by rstan (see rstan documentation)}
+\item{init}{Either \code{default} or other values supported by \code{\link[rstan]{stan}} function of \pkg{RStan}}
 
 \item{prior}{A losigtic value, specifying whether or not to use default prior for DDM parameters. By default, \code{prior} = TRUE.}
 
@@ -51,7 +51,10 @@ If not, RegDDM will only generate the code and return the data input for stan.}
 
 \item{cores}{Number of cores to run the chains. It is best to make \code{cores = chains}.  Default is 4.}
 
-\item{...}{Other parameters sent to rstan package.}
+\item{...}{Other parameters sent to \code{\link[rstan]{stan}} function of \pkg{RStan}.}
+}
+\value{
+A list containing the posterior summary statistics, the maximum R-hat statistic and a \code{\link[rstan]{stanfit}} object.
 }
 \description{
 \code{regddm} makes it easy to fit a single Bayesian hierarchical drift-diffusion
