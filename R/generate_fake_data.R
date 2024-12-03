@@ -1,11 +1,11 @@
 #' Generate simulated binary decision data using DDM
 #'
 #' @description
-#' This function generates a fake dataset under different configurations
-#' It can be used to test the performance of RegDDM under different conditions.
-#' It is also used in testing the functionality of the package.
+#' This function generates a simulated dataset under different configurations
+#' It can be used to test the performance and functionality of \pkg{RegDDM}.
+#' The outcome variable is \code{y}, which is influenced by different variables.
 #'
-#' @param N Number of subjects to simulate
+#' @param N Number of subjects.
 #' @param n_each Number of trials per subject
 #' @param n_xvar Number of trial-level variables influencing drift rate
 #' @param beta_0 Intercept
@@ -14,17 +14,25 @@
 #' @param beta_v_0 Slope of v_0
 #' @param beta_v_x1 Slope of v_x1
 #' @param beta_v_x2 Slope of v_x2
-#' @param sigma_y Standard deviation of error term of y
-#' @param sigma_v Contaminant level for drift rate v
-#' @param y_family Family of distribution of y. Can be either "gaussian", "bernoulli" or "poisson"
+#' @param sigma_y Standard deviation of error term of y, Only used when
+#'   \code{y_family} is "gaussian"
+#' @param sigma_v Contaminant level for drift rate v.
+#' @param y_family Family of distribution of y. Can be either "gaussian",
+#'   "bernoulli" or "poisson"
 #'
-#' @export
+#' @return A named list with four elements. \code{data1_true} and
+#'   \code{data2_true} are true values of DDM parameters of each subject and
+#'   trial. \code{data1} and \code{data2} removed those hidden variables.
 #'
 #' @examples
-#' ## Not run:
-#' fake_data = generate_fake_data()
-#' ## End(Not run)
-generate_fake_data <- function(
+#' \donttest{
+#' sim_data = generate_sim_data()
+#' sim_data$data1
+#' sim_data$data2
+#' }
+#'
+#' @export
+generate_sim_data <- function(
     N = 30,
     n_each = 100,
     n_xvar = 2, # number of trial-level variables included
@@ -38,10 +46,12 @@ generate_fake_data <- function(
     sigma_v = 0,
     y_family = "gaussian"
 ){
+
+  # trial-level variables generation
   x1 = runif(n_each*N, -sqrt(3), sqrt(3))
   x2 = runif(n_each*N, -sqrt(3), sqrt(3))
 
-  # generating the subject-level data
+  # generate the true subject-level data
   data1_true =
     dplyr::tibble(
       id = 1:N,
@@ -85,7 +95,7 @@ generate_fake_data <- function(
     )
   }
 
-  # generating the trial-level data
+  # generate the trial-level data
   data2_true = dplyr::tibble(x1 = x1, x2 = x2)
 
   # this function calculates drift rate given trial-level variables
@@ -94,15 +104,17 @@ generate_fake_data <- function(
     return(v_0 + v_x1*x1 + v_x2*x2 + rnorm(1, 0, sigma_v))
   }
 
-  # this function simulates DDM using easyRT
+  # this function simulates DDM using rtdists
   r_ddm = function(a,z,t,v){
-    # somehow, if st0 = 0, there will be some weird outcomes
+    # somehow, if st0 = 0, there will be some weird outcomes with reaction time
+    # less then non-decision time.
     tmp = rtdists::rdiffusion(n = 1, a = a, v = v, z = z, t0 = t, st0 = 0.001)
     return(tmp)
   }
 
-  # generate fake response and reaction time for each trial.
-  # these are the trial-level true parameters with output
+
+  # trial-level data frame with true DDM parameters for each trial
+  # simulate response and reaction time for each trial.
   # in our simulation, only drift rate is influenced by trial-level variables
   data2_true =
     dplyr::mutate(
@@ -127,6 +139,7 @@ generate_fake_data <- function(
       response = ifelse(.data$response == "upper", 1, 0)
     )
 
+  # remove hidden variables
   data1 = dplyr::select(data1_true, "id", "y", "c1", "c2")
   data2 = dplyr::select(data2_true, "id", "response", "rt", "x1", "x2")
 
