@@ -12,7 +12,9 @@ regddm_tutorial
 }
 \description{
 This is the same simulated dataset used in the tutorial part of the RegDDM paper.
-v = x1\*v_x1
-y ~ N(1 + 1\*v_x1 + 1\*c1, 1)
+
+\eqn{v = x_1\times v_{x_1}}
+
+\eqn{y \sim N(1 + 1\times v_{x_1} + 1\times c_1, 1)}
 }
 \keyword{datasets}

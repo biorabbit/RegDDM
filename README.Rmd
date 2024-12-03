@@ -47,7 +47,7 @@ head(regddm_tutorial$data1)
 head(regddm_tutorial$data2)
 ```
 
-Specify the model using a list. In this example, the drift rate is influenced by `x1` and the subject's outcome `y` is predicted by baseline drift rate when `x1` is 0 (`v_0`), the influence of `x1` on drift rate `v_x1` and covariate `c1`:
+Specify the model using a list. In this example, the drift rate is influenced by `x1`. The subject's outcome `y` is predicted by baseline drift rate `v_0` (drift rate when `x1` is 0), the influence of `x1` on drift rate `v_x1` and covariate `c1`:
 
 ```{r}
 model = list(
@@ -56,7 +56,7 @@ model = list(
 )
 ```
 
-Use the main function to automatically generate the stan model and summary the results. This could take ~20 minutes to run. The rows starting with 'beta_' are the posterior distributions of regression parameters:  
+Use the main function of `RegDDM` to automatically generate the `RStan` model and summary the results. This could take ~20 minutes to run. The rows starting with 'beta_' are the posterior distributions of regression parameters:  
 
 ```{r}
 fit = regddm(
@@ -64,18 +64,18 @@ fit = regddm(
   regddm_tutorial$data2,
   model
 )
+
+print(fit)
 ```
 
-In conclusion, the outcome is positively correlated with `v_x1` and `c1`. The higher the influence of `x1` and the higher the first covariate, the higher the outcome `y`. 
-
-
+In this example, the outcome is positively correlated with `v_x1` and `c1`, but not `v_0`. The higher the influence of `x1` on drift rate and the higher the covariate, the higher the outcome `y`. 
 
 # Using your own data!
 If you want to fit the model on your own data, you need to specify `data1`, `data2` and `model`.
 
 `data1` is subject-level data table. It should contain the following:
 * `id`: unique indexing column for each subject. 
-* other subject-level variables that we want to include in the regression. Variables used as covariates could contain missing values. 
+* other subject-level variables that we want to include in the regression. Missing value is supported 
 
 `data2` is trial-level data table. It should contain the following:
 * `id`: the subject of each trial using the same index in `data1`. 

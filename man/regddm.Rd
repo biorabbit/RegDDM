@@ -22,39 +22,52 @@ regddm(
 )
 }
 \arguments{
-\item{data1}{Subject-level dataframe with column such as age and gender. It must contain an \code{id} column unique for each subject.}
+\item{data1}{Subject-level dataframe with column such as age and gender. It
+must contain an \code{id} column unique for each subject.}
 
-\item{data2}{Trial-level dataframe. It must contain three columns: \code{id}, \code{response} and \code{rt}. It can also contain additional trial-level variables such as experiment condition.}
+\item{data2}{Trial-level dataframe. It must contain three columns: \code{id},
+\code{response} and \code{rt}. It can also contain additional trial-level variables
+such as experiment condition.}
 
-\item{model}{A list containing 0-5 formulas, specifying the dependence structure between variables.}
+\item{model}{A list containing 0-5 formulas, specifying the dependence
+structure between variables.}
 
-\item{family}{Family of distribution of \code{y}. Can be \code{gaussian}, \code{bernoulli} or \code{poisson}.}
+\item{family}{Family of distribution of \code{y}. Can be \code{gaussian}, \code{bernoulli}
+or \code{poisson}.}
 
-\item{init}{Either \code{default} or other values supported by \code{\link[rstan]{stan}} function of \pkg{RStan}}
+\item{init}{Either \code{default} or other values supported by
+\code{\link[rstan]{stan}} function of \pkg{RStan}}
 
-\item{prior}{A losigtic value, specifying whether or not to use default prior for DDM parameters. By default, \code{prior} = TRUE.}
+\item{prior}{A losigtic value, specifying whether or not to use default prior
+for DDM parameters. By default, \code{prior} = TRUE.}
 
-\item{stan_filename}{A string specifying the automatically generated stan file name.
-By default, an empty string \code{''} is provided. A temporary file will be created and deleted after the model is fit.}
+\item{stan_filename}{A string specifying the automatically generated \code{stan}
+file name. By default, an empty string \code{''} is provided. A temporary file
+will be created and deleted after the model is fit.}
 
-\item{gen_model}{A logistic value indicating weather or not to generate the model.
-If not, RegDDM will not generate the code but use the existing stan model instead.}
+\item{gen_model}{A logistic value indicating weather or not to generate the
+model. If not, RegDDM will not generate the code but use the existing \code{stan}
+code from \code{stan_filename} instead.}
 
 \item{fit_model}{A logistic value indicating weather or not to fit the model.
-If not, RegDDM will only generate the code and return the data input for stan.}
+If not, RegDDM will only generate the code and return an unfitted
+\code{\link{regddmfit}} object.}
 
 \item{warmup}{Number of warm-up iterations. Default is 500.}
 
-\item{iter}{Number of iterations, which must be greater than warmup. Default is 500.}
+\item{iter}{Number of iterations, which must be greater than \code{warmup}.
+Default value is 1000.}
 
-\item{chains}{Number of chains to run for diagnosis. Default is 4.}
+\item{chains}{Number of chains to run for diagnosis. Default value is 4.}
 
-\item{cores}{Number of cores to run the chains. It is best to make \code{cores = chains}.  Default is 4.}
+\item{cores}{Number of cores to run the chains. It is best to make
+\code{cores = chains}.  Default value is 4.}
 
-\item{...}{Other parameters sent to \code{\link[rstan]{stan}} function of \pkg{RStan}.}
+\item{...}{Other parameters sent to \code{\link[rstan]{stan}} function of
+\pkg{RStan}.}
 }
 \value{
-A list containing the posterior summary statistics, the maximum R-hat statistic and a \code{\link[rstan]{stanfit}} object.
+A \code{\link{regddmfit}} object.
 }
 \description{
 \code{regddm} makes it easy to fit a single Bayesian hierarchical drift-diffusion
@@ -62,16 +75,31 @@ model (DDM) that estimates the DDM parameters of each subject and uses the
 estimated parameters as variables in a generalized linear regression.
 }
 \examples{
-\dontrun{
-# example analysis of Cognitive Reserve Study dataset.
+\donttest{
+# Note: each example takes about 20 minutes to run. During this period, you
+# may not be able to open/save files or see the progress. To prevent this,
+# it is recommended to copy, paste and run the example code in the console.
+
+# Example analysis over the simulated tutorial dataset.
 data(regddm_tutorial)
 model = list(v ~ x1, y ~ v_0 + v_x1 + c1)
-fit = regddm(
+fit1 = regddm(
   regddm_tutorial$data1,
   regddm_tutorial$data2,
   model,
   stan_filename = ""
 )
+print(fit1)
+
+# Alternatively, subjects' DDM parameters can be used as the outcome.
+model = list(v ~ x1, v_x1 ~ y + c1)
+fit2 = regddm(
+  regddm_tutorial$data1,
+  regddm_tutorial$data2,
+  model,
+  stan_filename = ""
+)
+print(fit2)
 }
 }
 \references{

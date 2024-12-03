@@ -2,12 +2,16 @@
 #' Making the results more tidy and easier to use.
 #' @keywords internal
 #' @noRd
-summary_results = function(fit,model,data1){
-  res = as.data.frame(rstan::summary(fit)$summary)
+summary_results = function(stan_fit,data1, ...){
+  # use default rstan function to summary the results
+  res = as.data.frame(rstan::summary(stan_fit, ...)$summary)
+  statistics_list = colnames(res)
   res$variable = rownames(res)
   res = dplyr::tibble(res)
   res = dplyr::select(res, "variable", dplyr::everything())
 
+  # This local function extracts a certain statistics of all subjects' DDM
+  # parameters.
   extract_subject_ddm = function(statistics){
     subject_ddm =
       dplyr::filter(res, stringr::str_detect(.data$variable, "^[atzv]_.+\\[\\d+\\]$"))
@@ -26,38 +30,37 @@ summary_results = function(fit,model,data1){
     return(subject_ddm)
   }
 
+  # for regression coefficients
   glm_coefficiets =
     dplyr::filter(res, stringr::str_detect(.data$variable, "^beta_") | stringr::str_detect(.data$variable, "^sigma$"))
 
-  subject_ddm_param = list(
-    mean = extract_subject_ddm("mean"),
-    sd = extract_subject_ddm("sd"),
-    CrI_l = extract_subject_ddm("2.5%"),
-    CrI_h = extract_subject_ddm("97.5%"),
-    Rhat = extract_subject_ddm("Rhat")
-  )
+  # for subject-level ddm parameters
+  subject_ddm_param = list()
+  for(statistic in statistics_list){
+    subject_ddm_param[[statistic]] = extract_subject_ddm(statistic)
+  }
 
+  # for group mean and sd of subjects' DDM parameters and covarites.
   group_param = dplyr::filter(
     res,
     stringr::str_detect(.data$variable,"^(mu|sigma)_.+$")
   )
 
+  # for estimated missing values
   missing_value = dplyr::filter(
     res,
     stringr::str_detect(.data$variable,"^.+_mis.*$")
   )
 
-  max_r_hat = max(res$Rhat)
+  max_rhat = max(res$Rhat, na.rm = TRUE) # remove NaN. Some variables may be fixed
 
   return(
     list(
-      glm_coefficiets = glm_coefficiets, # glm regression parameters
+      glm_coefficiets = glm_coefficiets, # GLM regression parameters
       subject_ddm_param = subject_ddm_param, # ddm parameters of each subject
       group_param = group_param, # group mean and SD of DDM parameters
       missing_value = missing_value, # estimated missing covariates
-      max_r_hat = max_r_hat,
-      model = model,
-      stan_fit = fit # additional information can be found from the original stan model.
+      max_rhat = max_rhat # maximum r-hat statistics measuring convergence
     )
   )
 }

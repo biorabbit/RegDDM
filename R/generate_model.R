@@ -1,4 +1,6 @@
-#' This function generates a model specified by the user
+#' This function generates a stan model specified by the user writes to a file
+#' containing the model. Currently it only support Gaussian, Bernoulli and
+#' Poisson distribution with canonical link function.
 #' @keywords internal
 #' @noRd
 #'
@@ -10,9 +12,6 @@ generate_model = function(
     family,
     file_name
 ){
-  # this function writes to a file containing the stan model
-  # currently only support gaussian, bernoulli and poisson distribution
-
   x_names = stan_data$x_names
   c_names = stan_data$c_names
   stan_data = stan_data$data

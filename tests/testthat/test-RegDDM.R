@@ -79,15 +79,15 @@ test_that("model check works", {
 
 # Test that the simulated data generation function works
 # this function is mostly used as a testing tool for RegDDM
-test_that("fake data generation works", {
+test_that("simulated data generation works", {
   expect_no_error(
-    generate_fake_data()
+    generate_sim_data()
   )
   expect_no_error(
-    generate_fake_data(y_family = "bernoulli", n = 50, n_each = 50)
+    generate_sim_data(y_family = "bernoulli", n = 50, n_each = 50)
   )
   expect_no_error(
-    generate_fake_data(y_family = "poisson", n_xvar = 0, beta_v_0 = 1, sigma_v = 0.3)
+    generate_sim_data(y_family = "poisson", n_xvar = 0, beta_v_0 = 1, sigma_v = 0.3)
   )
 })
 
@@ -97,16 +97,25 @@ test_that("fake data generation works", {
 # warnings are suppressed because it doesn't influence RegDDM functionality
 test_that("example code works", {suppressWarnings({
   skip_on_cran()
+
+  # Example analysis over the simulated tutorial dataset.
   data(regddm_tutorial)
   model = list(v ~ x1, y ~ v_0 + v_x1 + c1)
-  expect_no_error(
-    regddm(
-      regddm_tutorial$data1,
-      regddm_tutorial$data2,
-      model,
-      fit_model = FALSE
-    )
-  )
+  expect_no_error(regddm(
+    regddm_tutorial$data1,
+    regddm_tutorial$data2,
+    model,
+    stan_filename = ""
+  ))
+
+  # Alternatively, subjects' DDM parameters can be used as the outcome.
+  model = list(v ~ x1, v_x1 ~ y + c1)
+  expect_no_error(regddm(
+    regddm_tutorial$data1,
+    regddm_tutorial$data2,
+    model,
+    stan_filename = ""
+  ))
 })})
 
 test_that("model with interaction works", {suppressWarnings({

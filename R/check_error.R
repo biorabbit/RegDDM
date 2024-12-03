@@ -10,10 +10,10 @@ check_data = function(
 
   # check the general sample size
   if(N == 1){
-    stop("please provide at least 2 subjects for regression analysis.\n")
+    stop("Please provide at least 2 subjects for regression analysis.\n")
   }
   if(N < 5){
-    warning("less than 5 subjects in the data. May experience difficulty in model convergence.\n")
+    warning("Less than 5 subjects provided. This may cause difficulty in model convergence.\n")
   }
 
   # check for id column in data1
@@ -38,19 +38,18 @@ check_data = function(
     }
   }
 
-
   # check for errors in trial-level data
   if(! "id" %in% colnames(data2)){
     stop("Must identify subjects using variable 'id' in data2\n")
   }
   if(! "response" %in% colnames(data2)){
-    stop("variable 'response' not found in data2.\n")
+    stop("Variable 'response' not found in data2.\n")
   }
   if(!all(unique(data2$response) %in% c(0, 1))){
     stop("Encode the 'response' of the trial in data2 using upper = 1, lower = 0\n")
   }
   if(! "rt" %in% colnames(data2)){
-    stop("variable 'rt' not found in data2. Encode the response time of subjects in seconds\n")
+    stop("Variable 'rt' not found in data2. Encode the response time of subjects in seconds\n")
   }
   if(min(data2$rt) < 0.1){
     warning("Some trials has response time(rt) less than 0.1s. Did your subjects make proper decision?\n")
@@ -62,12 +61,12 @@ check_data = function(
   # check if all subjects in data1 and data2 matches
   for(id in unique(data2$id)){
     if(!id %in% data1$id){
-      stop(paste0("subject ", id, " in data2 has no records in data1. Check your data!\n"))
+      stop(paste0("Subject ", id, " in data2 has no records in data1. Check your data!\n"))
     }
   }
   for(id in data1$id){
     if(!id %in% data2$id){
-      stop(paste0("subject ", id, " in data1 has no records in data2. Check your data!\n"))
+      stop(paste0("Subject ", id, " in data1 has no records in data2. Check your data!\n"))
     }
   }
 
@@ -128,7 +127,8 @@ check_model = function(
   # this could happen when there are three variables 'x1', 'x2' and 'x1_x2'
   # and a model with a ~ x1 * x2 + x1_x2 structure is fit...
   # RegDDM will generate a_x1_x2 for x1, x2 interaction terms and also a_x1_x2 for x1_x2
-  # currently no good solution since stan does not accept x1:x2 as variable name
+  # currently, there is no good solution since stan does not accept x1:x2 as a
+  # variable name...
   duplicate_terms = dplyr::tibble(
     term = valid_parameters
   )
