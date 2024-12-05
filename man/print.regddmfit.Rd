@@ -4,10 +4,10 @@
 \alias{print.regddmfit}
 \title{Printed summary of \pkg{RegDDM} fit object}
 \usage{
-\method{print}{regddmfit}(fit, digits = 3, ...)
+\method{print}{regddmfit}(x, digits = 3, ...)
 }
 \arguments{
-\item{fit}{An \link[RegDDM]{\code{regddmfit}} object to print}
+\item{x}{An \code{\link{regddmfit}} object to print}
 
 \item{digits}{digits of the output results. Default value is 3.}
 

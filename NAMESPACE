@@ -3,7 +3,7 @@
 S3method(print,regddmfit)
 S3method(summary,regddmfit)
 export(generate_sim_data)
-export(get_stan_model)
+export(get_stan_fit)
 export(regddm)
 import(stats)
 importFrom(rlang,.data)

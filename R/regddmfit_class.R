@@ -3,18 +3,18 @@
 #' @description
 #' \code{regddmfit} is an S3 object sotring the fitted models of \pkg{RegDDM}.
 #' It contains information used to fit the model and the resulting
-#' \link[rstan]{\code{stanfit}} and can be summarized and printed using
-#' \code{\link{summary.regddmfit}} and \code{\link{print.redggmfit}}.
+#' \code{\link[rstan]{stanfit}} and can be summarized and printed using
+#' \code{\link[=summary.regddmfit]{summary}} and \code{\link[=print.regddmfit]{print}}.
 #'
 #' @details
 #' Use \code{methods(class = "regddmfit")} for a list of available methods.
 #'
-#' @slot data1 Subject-level data frame.
-#' @slot data2 Trial-level data frame.
-#' @slot model A list containing 0-5 formulas, specifying the dependence
+#' @param data1 Subject-level data frame.
+#' @param data2 Trial-level data frame.
+#' @param model A list containing 0-5 formulas, specifying the dependence
 #' structure between variables.
-#' @slot family Family of distribution of the outcome.
-#' @slot stan_fit Fitted \code{stan} model.
+#' @param family Family of distribution of the outcome.
+#' @param stan_fit Fitted \code{stan} model.
 regddmfit <- function(data1,data2,model,family,stan_fit){
   x = list(
     data1 = data1,
@@ -33,8 +33,8 @@ regddmfit <- function(data1,data2,model,family,stan_fit){
 #' Summarize the posterior distributions of estimated parameters and group them into
 #' four categories.
 #'
-#' @param fit A \code{\link{regddmfit}} object to summary
-#' @param ... parameters passed to \code{\link[rstan]{summary.stanfit}}
+#' @param object A \code{\link{regddmfit}} object to summary
+#' @param ... parameters passed to \code{\link[rstan]{summary,stanfit-method}}
 #'
 #' @return The summary method returns a named list of \code{glm_coefficiets},
 #'    \code{subject_ddm_param}, \code{group_param}, and \code{missing_value}.
@@ -46,8 +46,8 @@ regddmfit <- function(data1,data2,model,family,stan_fit){
 #' @seealso \code{\link{print.regddmfit}} a printed summary of the \code{regddmfit} object.
 #'
 #' @export
-summary.regddmfit = function(fit, ...){
-  return(summary_results(fit$stan_fit, fit$data1, ...))
+summary.regddmfit = function(object, ...){
+  return(summary_results(object$stan_fit, object$data1, ...))
 }
 
 #' Printed summary of \pkg{RegDDM} fit object
@@ -56,7 +56,7 @@ summary.regddmfit = function(fit, ...){
 #' Summarize the posterior distributions of estimated regression coefficients
 #' and print necessary information.
 #'
-#' @param fit An \link[RegDDM]{\code{regddmfit}} object to print
+#' @param x An \code{\link{regddmfit}} object to print
 #' @param digits digits of the output results. Default value is 3.
 #' @param ... Unused...
 #'
@@ -65,18 +65,18 @@ summary.regddmfit = function(fit, ...){
 #' @return No values are returned.
 #'
 #' @export
-print.regddmfit = function(fit, digits = 3, ...){
-  tmp_summary = summary.regddmfit(fit)
+print.regddmfit = function(x, digits = 3, ...){
+  tmp_summary = summary.regddmfit(x)
   output = "RegDDM Model Summary\n"
-  output = paste0(output, "Number of subjects: ", nrow(fit$data1), "\n")
-  output = paste0(output, "Number of trials: ", nrow(fit$data2), "\n")
+  output = paste0(output, "Number of subjects: ", nrow(x$data1), "\n")
+  output = paste0(output, "Number of trials: ", nrow(x$data2), "\n")
   output = paste0(output, "Model:\n")
-  for(m in fit$model){
+  for(m in x$model){
     output = paste0(output, "  ", deparse(m), "\n")
   }
-  output = paste0(output, "Family: ", fit$family, "\n")
-  sim = fit$stan_fit@sim
-  longest_time = rstan::get_elapsed_time(fit$stan_fit)
+  output = paste0(output, "Family: ", x$family, "\n")
+  sim = x$stan_fit@sim
+  longest_time = rstan::get_elapsed_time(x$stan_fit)
   longest_time = round(max(longest_time[,1]+longest_time[,2]), 0)
   output = paste0(
     output, "Sampling: ",
@@ -89,12 +89,12 @@ print.regddmfit = function(fit, digits = 3, ...){
   output = paste0(output, "Regression coefficients:\n")
   glm_coefficients = dplyr::select(
     tmp_summary$glm_coefficiets,
-    variable, mean, sd, `2.5%`, `97.5%`, n_eff, Rhat
+    "variable", "mean", "sd", "2.5%", "97.5%", "n_eff", "Rhat"
   )
   glm_coefficients = as.data.frame(glm_coefficients)
   output = paste0(
     output,
-    paste(capture.output(print(glm_coefficients,digits = digits)), collapse = "\n")
+    paste(utils::capture.output(print(glm_coefficients,digits = digits)), collapse = "\n")
   )
   output = paste0(output, "\nMaximum R-hat: ", round(tmp_summary$max_rhat, digits))
 
@@ -110,7 +110,7 @@ print.regddmfit = function(fit, digits = 3, ...){
 #' @param fit A \code{regddmfit} object to summary
 #' @return A \code{stanfit} object.
 #' @export
-get_stan_model <- function(fit){
+get_stan_fit <- function(fit){
   return(fit$stan_fit)
 }
 

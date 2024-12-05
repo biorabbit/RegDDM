@@ -4,12 +4,12 @@
 \alias{summary.regddmfit}
 \title{Summary of \pkg{RegDDM} fit object}
 \usage{
-\method{summary}{regddmfit}(fit, ...)
+\method{summary}{regddmfit}(object, ...)
 }
 \arguments{
-\item{fit}{A \code{\link{regddmfit}} object to summary}
+\item{object}{A \code{\link{regddmfit}} object to summary}
 
-\item{...}{parameters passed to \code{\link[rstan]{summary.stanfit}}}
+\item{...}{parameters passed to \code{\link[rstan]{summary,stanfit-method}}}
 }
 \value{
 The summary method returns a named list of \code{glm_coefficiets},

@@ -75,11 +75,11 @@ model (DDM) that estimates the DDM parameters of each subject and uses the
 estimated parameters as variables in a generalized linear regression.
 }
 \examples{
-\donttest{
 # Note: each example takes about 20 minutes to run. During this period, you
 # may not be able to open/save files or see the progress. To prevent this,
 # it is recommended to copy, paste and run the example code in the console.
 
+\dontrun{
 # Example analysis over the simulated tutorial dataset.
 data(regddm_tutorial)
 model = list(v ~ x1, y ~ v_0 + v_x1 + c1)

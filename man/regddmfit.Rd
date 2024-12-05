@@ -6,27 +6,24 @@
 \usage{
 regddmfit(data1, data2, model, family, stan_fit)
 }
+\arguments{
+\item{data1}{Subject-level data frame.}
+
+\item{data2}{Trial-level data frame.}
+
+\item{model}{A list containing 0-5 formulas, specifying the dependence
+structure between variables.}
+
+\item{family}{Family of distribution of the outcome.}
+
+\item{stan_fit}{Fitted \code{stan} model.}
+}
 \description{
 \code{regddmfit} is an S3 object sotring the fitted models of \pkg{RegDDM}.
 It contains information used to fit the model and the resulting
-\link[rstan]{\code{stanfit}} and can be summarized and printed using
-\code{\link{summary.regddmfit}} and \code{\link{print.redggmfit}}.
+\code{\link[rstan]{stanfit}} and can be summarized and printed using
+\code{\link[=summary.regddmfit]{summary}} and \code{\link[=print.regddmfit]{print}}.
 }
 \details{
 Use \code{methods(class = "regddmfit")} for a list of available methods.
 }
-\section{Slots}{
-
-\describe{
-\item{\code{data1}}{Subject-level data frame.}
-
-\item{\code{data2}}{Trial-level data frame.}
-
-\item{\code{model}}{A list containing 0-5 formulas, specifying the dependence
-structure between variables.}
-
-\item{\code{family}}{Family of distribution of the outcome.}
-
-\item{\code{stan_fit}}{Fitted \code{stan} model.}
-}}
-

@@ -118,6 +118,20 @@ test_that("example code works", {suppressWarnings({
   ))
 })})
 
+test_that("summary function works", {suppressWarnings({
+  skip_on_cran()
+
+  # Example analysis over the simulated tutorial dataset.
+  data(regddm_tutorial)
+  model = list(v ~ x1, y ~ v_0 + v_x1 + c1)
+  expect_no_error(summary(regddm(
+    regddm_tutorial$data1,
+    regddm_tutorial$data2,
+    model,
+    stan_filename = ""
+  )))
+})})
+
 test_that("model with interaction works", {suppressWarnings({
   skip_on_cran()
 
@@ -171,14 +185,14 @@ test_that("model works for Bernoulli and Poisson family", {suppressWarnings({
   skip_on_cran()
 
   # for bernoulli family
-  fake_data = generate_fake_data(N = 100, n_xvar = 0, n_each = 50, y_family = "bernoulli")
+  fake_data = generate_sim_data(N = 100, n_xvar = 0, n_each = 50, y_family = "bernoulli")
   model = list(y ~ v_0)
   expect_no_error(
     regddm(fake_data$data1, fake_data$data2, model, family = "bernoulli")
   )
 
   # for poisson family
-  fake_data = generate_fake_data(N = 50, n_xvar = 0, n_each = 50, y_family = "poisson")
+  fake_data = generate_sim_data(N = 50, n_xvar = 0, n_each = 50, y_family = "poisson")
   model = list(y ~ v_0)
   expect_no_error(
     regddm(fake_data$data1, fake_data$data2, model, family = "poisson")
@@ -188,7 +202,7 @@ test_that("model works for Bernoulli and Poisson family", {suppressWarnings({
 
 test_that("model works for DDM parameter as outcome", {suppressWarnings({
   skip_on_cran()
-  fake_data = generate_fake_data(N = 50, n_xvar = 0, n_each = 50)
+  fake_data = generate_sim_data(N = 50, n_xvar = 0, n_each = 50)
   model = list(v_0 ~ c1 + a_0)
   expect_no_error(regddm(fake_data$data1, fake_data$data2, model))
 })})
