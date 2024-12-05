@@ -11,11 +11,10 @@ MCMC!
 
 ## Installation
 
-You can install latest version of RegDDM using Github. The package will
-later be available on CRAN.
+You can install latest version of RegDDM from CRAN:
 
 ``` r
-remotes::install_github("biorabbit/RegDDM")
+install.packages("RegDDM")
 ```
 
 ## Example
