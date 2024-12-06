@@ -22,10 +22,16 @@ Build Regression models over Drift Diffusion Model parameters using MCMC!
 
 ## Installation
 
-You can install latest version of RegDDM from CRAN:
+You can install latest version of `RegDDM` from CRAN:
 
 ``` r
 install.packages("RegDDM")
+```
+
+For RStudio users, you may need the following:
+
+```r
+install.packages("rstudioapi")
 ```
 
 ## Example

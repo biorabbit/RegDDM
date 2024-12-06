@@ -83,7 +83,7 @@ print.regddmfit = function(x, digits = 3, ...){
     stringr::str_interp(
       "${sim$chains} chains, ${sim$warmup} warmups and ${sim$iter} iterations were used. "
     ),
-    stringr::str_interp("Longest elipsed time is ${longest_time} s.\n\n")
+    stringr::str_interp("Longest elapsed time is ${longest_time} s.\n\n")
   )
 
   output = paste0(output, "Regression coefficients:\n")

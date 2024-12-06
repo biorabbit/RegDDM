@@ -11,10 +11,16 @@ MCMC!
 
 ## Installation
 
-You can install latest version of RegDDM from CRAN:
+You can install latest version of `RegDDM` from CRAN:
 
 ``` r
 install.packages("RegDDM")
+```
+
+For RStudio users, you may need the following:
+
+``` r
+install.packages("rstudioapi")
 ```
 
 ## Example
@@ -84,16 +90,16 @@ print(fit)
 #>   v ~ x1
 #>   y ~ v_0 + v_x1 + c1
 #> Family: gaussian
-#> Sampling: 4 chains, 500 warmups and 1000 iterations were used. Longest elipsed time is 639 s.
+#> Sampling: 4 chains, 500 warmups and 1000 iterations were used. Longest elipsed time is 748 s.
 #> 
 #> Regression coefficients:
-#>    variable   mean    sd    2.5% 97.5% n_eff  Rhat
-#> 1    beta_0  1.551 0.992 -0.3261 3.551  1413 0.998
-#> 2  beta_v_0 -0.851 0.551 -1.9479 0.253  1669 0.999
-#> 3 beta_v_x1  0.917 0.202  0.5067 1.309  3290 0.998
-#> 4   beta_c1  0.918 0.389  0.0827 1.661  1791 0.998
-#> 5     sigma  1.131 0.180  0.8394 1.538  2068 1.000
-#> Maximum R-hat: 1.005
+#>    variable   mean    sd   2.5% 97.5% n_eff  Rhat
+#> 1    beta_0  1.546 0.996 -0.408 3.492  1280 1.000
+#> 2  beta_v_0 -0.851 0.550 -1.935 0.214  1405 1.000
+#> 3 beta_v_x1  0.922 0.186  0.560 1.291  2615 1.000
+#> 4   beta_c1  0.920 0.389  0.138 1.655  1720 1.000
+#> 5     sigma  1.130 0.179  0.839 1.541  2432 0.999
+#> Maximum R-hat: 1.006
 ```
 
 In this example, the outcome is positively correlated with `v_x1` and
