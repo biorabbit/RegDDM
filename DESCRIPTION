@@ -1,6 +1,6 @@
 Package: RegDDM
 Title: Generalized Linear Regression with DDM
-Version: 1.0
+Version: 1.1
 Authors@R: 
     person("Zekai", "Jin", email = "Jin.Zekai@nyspi.columbia.edu", role = c("aut", "cre"))
 Description: Drift-Diffusion Model (DDM) has been widely used to model binary

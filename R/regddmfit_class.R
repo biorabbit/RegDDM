@@ -47,6 +47,12 @@ regddmfit <- function(data1,data2,model,family,stan_fit){
 #'
 #' @export
 summary.regddmfit = function(object, ...){
+  # For unfitted models, return NULL
+  if(is.na(object$stan_fit)){
+    warning("The RegDDM model hasn't been fit. Returning NULL.")
+    return(NULL)
+  }
+  # Otherwise, return summary statistics.
   return(summary_results(object$stan_fit, object$data1, ...))
 }
 
@@ -75,6 +81,14 @@ print.regddmfit = function(x, digits = 3, ...){
     output = paste0(output, "  ", deparse(m), "\n")
   }
   output = paste0(output, "Family: ", x$family, "\n")
+
+  # For unfitted models
+  if(is.na(x$stan_fit)){
+    output = paste0(output, "Sampling not done!")
+    cat(output)
+    return(NULL)
+  }
+
   sim = x$stan_fit@sim
   longest_time = rstan::get_elapsed_time(x$stan_fit)
   longest_time = round(max(longest_time[,1]+longest_time[,2]), 0)
