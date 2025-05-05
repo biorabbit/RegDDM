@@ -7,3 +7,8 @@
 #' \eqn{y \sim N(1 + 1\times v_{x_1} + 1\times c_1, 1)}
 "regddm_tutorial"
 
+#' Example dataset used from Cognitive reserve study.
+#' @description
+#' Tbd
+#'
+"regddm_data"
