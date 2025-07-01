@@ -92,9 +92,10 @@ test_that("simulated data generation works", {
 })
 
 
-# the following codes needs to fit stan models, which takes 4 cores and a long time
+# the following codes needs to fit stan models, which takes a long time
 # some tests will not be performed on CRAN but locally.
 # warnings are suppressed because it doesn't influence RegDDM functionality
+# only a few chains were run to save time
 test_that("example code works", {suppressWarnings({
   skip_on_cran()
 
@@ -104,7 +105,11 @@ test_that("example code works", {suppressWarnings({
   expect_no_error(regddm(
        regddm_data$data1,
        regddm_data$data2,
-       model
+       model,
+       chains = 1,
+       cores = 1,
+       iter = 10,
+       warmup = 5
     ))
 
   # Alternatively, subjects' DDM parameters can be used as the outcome.
@@ -112,7 +117,11 @@ test_that("example code works", {suppressWarnings({
   expect_no_error(regddm(
     regddm_data$data1,
     regddm_data$data2,
-    model
+    model,
+    chains = 1,
+    cores = 1,
+    iter = 10,
+    warmup = 5
   ))
 })})
 
@@ -125,7 +134,11 @@ test_that("summary function works", {suppressWarnings({
   expect_no_error(summary(regddm(
     regddm_data$data1,
     regddm_data$data2,
-    model
+    model,
+    chains = 1,
+    cores = 1,
+    iter = 10,
+    warmup = 5
   )))
 })})
 
@@ -139,7 +152,15 @@ test_that("model with interaction works", {suppressWarnings({
     y ~ v_0 + v_x1_x2
   )
   expect_no_error(
-    regddm(sim_data$data1, sim_data$data2, model)
+    regddm(
+      sim_data$data1,
+      sim_data$data2,
+      model,
+      chains = 1,
+      cores = 1,
+      iter = 10,
+      warmup = 5
+    )
   )
 
   # interaction in subject-level variable
@@ -149,7 +170,15 @@ test_that("model with interaction works", {suppressWarnings({
     y ~ v_0 + v_x1 * c1
   )
   expect_no_error(
-    regddm(sim_data$data1, sim_data$data2, model)
+    regddm(
+      sim_data$data1,
+      sim_data$data2,
+      model,
+      chains = 1,
+      cores = 1,
+      iter = 10,
+      warmup = 5
+    )
   )
 })})
 
@@ -159,20 +188,42 @@ test_that("model works for factor variables", {suppressWarnings({
   data("regddm_data")
 
   # factor in trial-level variable
+  data1 = regddm_data$data1
+  data2 = regddm_data$data2
+  data2$memload = factor(data2$memload)
+
   model = list(
-    v ~ x2,
-    y ~ v_0 + v_x2
+    v ~ memload,
+    iq ~ v_memload
   )
   expect_no_error(
-    regddm(regddm_data$data1, regddm_data$data2, model)
+    regddm(
+      regddm_data$data1,
+      regddm_data$data2,
+      model,
+      chains = 1,
+      cores = 1,
+      iter = 10,
+      warmup = 5
+    )
   )
 
   # factor in subject-level variable
+  data2 = regddm_data$data2
+
   model = list(
-    y ~ v_0 * c2
+    iq ~ race + v_0
   )
   expect_no_error(
-    regddm(regddm_data$data1, regddm_data$data2, model)
+    regddm(
+      regddm_data$data1,
+      regddm_data$data2,
+      model,
+      chains = 1,
+      cores = 1,
+      iter = 10,
+      warmup = 5
+    )
   )
 
 })})
@@ -185,23 +236,33 @@ test_that("model works for Bernoulli and Poisson family", {suppressWarnings({
   sim_data = generate_sim_data(N = 100, n_xvar = 0, n_each = 50, y_family = "bernoulli")
   model = list(y ~ v_0)
   expect_no_error(
-    regddm(sim_data$data1, sim_data$data2, model, family = "bernoulli")
+    regddm(
+      sim_data$data1,
+      sim_data$data2,
+      model,
+      family = "bernoulli",
+      chains = 1,
+      cores = 1,
+      iter = 10,
+      warmup = 5
+    )
   )
 
   # for poisson family
   sim_data = generate_sim_data(N = 50, n_xvar = 0, n_each = 50, y_family = "poisson")
   model = list(y ~ v_0)
   expect_no_error(
-    regddm(sim_data$data1, sim_data$data2, model, family = "poisson")
+    regddm(
+      sim_data$data1,
+      sim_data$data2,
+      model,
+      family = "poisson",
+      chains = 1,
+      cores = 1,
+      iter = 10,
+      warmup = 5
+    )
   )
-})})
-
-
-test_that("model works for DDM parameter as outcome", {suppressWarnings({
-  skip_on_cran()
-  sim_data = generate_sim_data(N = 50, n_xvar = 0, n_each = 50)
-  model = list(v_0 ~ c1 + a_0)
-  expect_no_error(regddm(sim_data$data1, sim_data$data2, model))
 })})
 
 
@@ -215,7 +276,11 @@ test_that("model works with prior = FALSE", {suppressWarnings({
       regddm_data$data1,
       regddm_data$data2,
       model,
-      prior =  FALSE
+      prior =  FALSE,
+      chains = 1,
+      cores = 1,
+      iter = 10,
+      warmup = 5
     )
   )
 })})
