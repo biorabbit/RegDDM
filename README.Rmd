@@ -40,25 +40,25 @@ First, load the package and the example dataset.
 
 ```{r example}
 library(RegDDM)
-data(regddm_tutorial)
+data(regddm_data)
 ```
 
 `data1` is the subject-level dataset:
 ```{r}
-head(regddm_tutorial$data1)
+head(regddm_data$data1)
 ```
 
 `data2` is the subject-level dataset:
 ```{r}
-head(regddm_tutorial$data2)
+head(regddm_data$data2)
 ```
 
-Specify the model using a list. In this example, the drift rate is influenced by `x1`. The subject's outcome `y` is predicted by baseline drift rate `v_0` (drift rate when `x1` is 0), the influence of `x1` on drift rate `v_x1` and covariate `c1`:
+Specify the model using a list. In this example, the drift rate `v` is influenced by `memload`, which is the memory load of the trial. The subject's `iq` is predicted by baseline drift rate `v_0` (drift rate when `memload` is 0), the influence of `memload` on drift rate `v_memload` and covariates `age` and `education`:
 
 ```{r}
 model = list(
-  v ~ x1,
-  y ~ v_0 + v_x1 + c1
+  v ~ memload,
+  iq ~ v_memload + v_0 + age + education
 )
 ```
 
@@ -66,22 +66,22 @@ Use the main function of `RegDDM` to automatically generate the `RStan` model an
 
 ```{r}
 fit = regddm(
-  regddm_tutorial$data1,
-  regddm_tutorial$data2,
+  regddm_data$data1,
+  regddm_data$data2,
   model
 )
 
 print(fit)
 ```
 
-In this example, the outcome is positively correlated with `v_x1` and `c1`, but not `v_0`. The higher the influence of `x1` on drift rate and the higher the covariate, the higher the outcome `y`. 
+In this example, `iq` is negatively correlated with `v_memload`. The higher the influence of `memload` on drift rate, the lower the `iq` of the subject. 
 
 # Using your own data!
 If you want to fit the model on your own data, you need to specify `data1`, `data2` and `model`.
 
 `data1` is subject-level data table. It should contain the following:
 * `id`: unique indexing column for each subject. 
-* other subject-level variables that we want to include in the regression. Missing value is supported 
+* other subject-level variables that we want to include in the regression. Missing values are supported 
 
 `data2` is trial-level data table. It should contain the following:
 * `id`: the subject of each trial using the same index in `data1`. 
@@ -99,7 +99,7 @@ If you want to fit the model on your own data, you need to specify `data1`, `dat
 
 `prior` determines whether to use the default prior for DDM parameters or not. Default is `TRUE`
 
-`stan_filename` is the file loaction for the automatically generated stan model. If an empty string '' is provided, a temporary file will be created and deleted after the model is fit. Default is `"stan_model.stan"`
+`stan_filename` is the file location for the automatically generated stan model. If an empty string '' is provided, a temporary file will be created and deleted after the model is fit. Default is `"stan_model.stan"`
 
 `gen_model` determines whether to generate the model or not. Default is `TRUE`.
 

@@ -154,7 +154,7 @@ regddm = function(
     if(delete_flag){
       file.remove(stan_filename)
     }
-    return(regddmfit(data1, data2, model, family, NA))
+    return(regddmfit(data1, data2, model, family, NULL))
   }
 
   # find the initialization for MCMC sampling

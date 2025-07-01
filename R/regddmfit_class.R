@@ -48,7 +48,7 @@ regddmfit <- function(data1,data2,model,family,stan_fit){
 #' @export
 summary.regddmfit = function(object, ...){
   # For unfitted models, return NULL
-  if(is.na(object$stan_fit)){
+  if(is.null(object$stan_fit)){
     warning("The RegDDM model hasn't been fit. Returning NULL.")
     return(NULL)
   }
@@ -83,7 +83,7 @@ print.regddmfit = function(x, digits = 3, ...){
   output = paste0(output, "Family: ", x$family, "\n")
 
   # For unfitted models
-  if(is.na(x$stan_fit)){
+  if(is.null(x$stan_fit)){
     output = paste0(output, "Sampling not done!")
     cat(output)
     return(NULL)

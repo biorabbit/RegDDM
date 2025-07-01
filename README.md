@@ -4,6 +4,7 @@
 # RegDDM
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 Build Regression models over Drift Diffusion Model parameters using
@@ -29,44 +30,45 @@ First, load the package and the example dataset.
 
 ``` r
 library(RegDDM)
-data(regddm_tutorial)
+data(regddm_data)
 ```
 
 `data1` is the subject-level dataset:
 
 ``` r
-head(regddm_tutorial$data1)
-#>   id          y         c1   c2
-#> 1  1  1.9690519 0.08461457    a
-#> 2  2  2.6410850 1.82427245 <NA>
-#> 3  3  5.1843542 1.23414213    b
-#> 4  4 -1.1623707         NA    c
-#> 5  5  0.9845534 1.77316247    a
-#> 6  6  2.0520609 1.37139039    b
+head(regddm_data$data1)
+#>   id     iq age gender  race education
+#> 1  1 112.80  22      F White        14
+#> 2  2 114.32  22      F White        16
+#> 3  3 116.96  22      F Black        13
+#> 4  4 111.68  31      F Black        16
+#> 5  5 121.36  21      M Asian        16
+#> 6  6 124.24  29      F White        18
 ```
 
 `data2` is the subject-level dataset:
 
 ``` r
-head(regddm_tutorial$data2)
-#>   id         x1 x2        rt response
-#> 1  1  0.4038328  a 0.7533853        1
-#> 2  1 -0.8707744  b 0.7314780        1
-#> 3  1  1.5737835  c 0.8965344        1
-#> 4  1  1.5112327  a 0.9395178        1
-#> 5  1 -0.8122571  b 0.6522295        1
-#> 6  1  1.1721147  c 0.6013884        0
+head(regddm_data$data2)
+#>   id memload response        rt
+#> 1  1       1        1 1.1772806
+#> 2  1       1        1 2.2207544
+#> 3  1       6        1 4.4166550
+#> 4  1       6        1 0.8540982
+#> 5  1       3        1 1.3794191
+#> 6  1       3        0 0.8278006
 ```
 
-Specify the model using a list. In this example, the drift rate is
-influenced by `x1`. The subject’s outcome `y` is predicted by baseline
-drift rate `v_0` (drift rate when `x1` is 0), the influence of `x1` on
-drift rate `v_x1` and covariate `c1`:
+Specify the model using a list. In this example, the drift rate `v` is
+influenced by `memload`, which is the memory load of the trial. The
+subject’s `iq` is predicted by baseline drift rate `v_0` (drift rate
+when `memload` is 0), the influence of `memload` on drift rate
+`v_memload` and covariates `age` and `education`:
 
 ``` r
 model = list(
-  v ~ x1,
-  y ~ v_0 + v_x1 + c1
+  v ~ memload,
+  iq ~ v_memload + v_0 + age + education
 )
 ```
 
@@ -77,34 +79,35 @@ regression parameters:
 
 ``` r
 fit = regddm(
-  regddm_tutorial$data1,
-  regddm_tutorial$data2,
+  regddm_data$data1,
+  regddm_data$data2,
   model
 )
 
 print(fit)
 #> RegDDM Model Summary
-#> Number of subjects: 30
-#> Number of trials: 3000
+#> Number of subjects: 49
+#> Number of trials: 6032
 #> Model:
-#>   v ~ x1
-#>   y ~ v_0 + v_x1 + c1
+#>   v ~ memload
+#>   iq ~ v_memload + v_0 + age + education
 #> Family: gaussian
-#> Sampling: 4 chains, 500 warmups and 1000 iterations were used. Longest elipsed time is 748 s.
+#> Sampling: 4 chains, 500 warmups and 1000 iterations were used. Longest elapsed time is 3218 s.
 #> 
 #> Regression coefficients:
-#>    variable   mean    sd   2.5% 97.5% n_eff  Rhat
-#> 1    beta_0  1.546 0.996 -0.408 3.492  1280 1.000
-#> 2  beta_v_0 -0.851 0.550 -1.935 0.214  1405 1.000
-#> 3 beta_v_x1  0.922 0.186  0.560 1.291  2615 1.000
-#> 4   beta_c1  0.920 0.389  0.138 1.655  1720 1.000
-#> 5     sigma  1.130 0.179  0.839 1.541  2432 0.999
-#> Maximum R-hat: 1.006
+#>         variable     mean     sd     2.5%   97.5% n_eff  Rhat
+#> 1         beta_0 112.8863 12.308   87.834 135.485  1621 0.999
+#> 2 beta_v_memload -54.3336 27.418 -110.982  -3.216   958 1.001
+#> 3       beta_v_0  -3.6667  2.003   -7.883   0.156  2602 0.999
+#> 4       beta_age   0.1293  0.329   -0.498   0.809  2541 0.998
+#> 5 beta_education  -0.0422  0.601   -1.216   1.083  2652 0.999
+#> 6          sigma   6.8007  0.826    5.350   8.599  2004 0.999
+#> Maximum R-hat: 1.005
 ```
 
-In this example, the outcome is positively correlated with `v_x1` and
-`c1`, but not `v_0`. The higher the influence of `x1` on drift rate and
-the higher the covariate, the higher the outcome `y`.
+In this example, `iq` is negatively correlated with `v_memload`. The
+higher the influence of `memload` on drift rate, the lower the `iq` of
+the subject.
 
 # Using your own data!
 
@@ -113,7 +116,7 @@ If you want to fit the model on your own data, you need to specify
 
 `data1` is subject-level data table. It should contain the following: \*
 `id`: unique indexing column for each subject. \* other subject-level
-variables that we want to include in the regression. Missing value is
+variables that we want to include in the regression. Missing values are
 supported
 
 `data2` is trial-level data table. It should contain the following: \*
@@ -141,7 +144,7 @@ initialization should work in most conditions
 `prior` determines whether to use the default prior for DDM parameters
 or not. Default is `TRUE`
 
-`stan_filename` is the file loaction for the automatically generated
+`stan_filename` is the file location for the automatically generated
 stan model. If an empty string ’’ is provided, a temporary file will be
 created and deleted after the model is fit. Default is
 `"stan_model.stan"`
