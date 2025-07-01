@@ -2,7 +2,7 @@
 % Please edit documentation in R/RegDDM.R
 \name{regddm}
 \alias{regddm}
-\title{Bayesian hierachical generalized linear regression using Drift-Diffusion Model}
+\title{Bayesian hierarchical generalized linear regression using Drift-Diffusion Model}
 \usage{
 regddm(
   data1,
@@ -38,7 +38,7 @@ or \code{poisson}.}
 \item{init}{Either \code{default} or other values supported by
 \code{\link[rstan]{stan}} function of \pkg{RStan}}
 
-\item{prior}{A losigtic value, specifying whether or not to use default prior
+\item{prior}{A logistic value, specifying whether or not to use default prior
 for DDM parameters. By default, \code{prior} = TRUE.}
 
 \item{stan_filename}{A string specifying the automatically generated \code{stan}
@@ -80,26 +80,22 @@ estimated parameters as variables in a generalized linear regression.
 # it is recommended to copy, paste and run the example code in the console.
 
 \dontrun{
-# Example analysis over the simulated tutorial dataset.
-data(regddm_tutorial)
-model = list(v ~ x1, y ~ v_0 + v_x1 + c1)
-fit1 = regddm(
-  regddm_tutorial$data1,
-  regddm_tutorial$data2,
-  model,
-  stan_filename = ""
+# Example analysis over the synthetic dataset.
+data(regddm_data)
+model = list(v ~ memload, iq ~ v_memload + v_0 + age + education)
+regddm(
+  regddm_data$data1,
+  regddm_data$data2,
+  model
 )
-print(fit1)
 
 # Alternatively, subjects' DDM parameters can be used as the outcome.
-model = list(v ~ x1, v_x1 ~ y + c1)
-fit2 = regddm(
-  regddm_tutorial$data1,
-  regddm_tutorial$data2,
-  model,
-  stan_filename = ""
+model = list(v ~ memload, v_memload ~ gender)
+regddm(
+  regddm_data$data1,
+  regddm_data$data2,
+  model
 )
-print(fit2)
 }
 }
 \references{

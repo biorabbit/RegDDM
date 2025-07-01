@@ -1,7 +1,7 @@
 #' Class of models fitted by \pkg{RegDDM}
 #'
 #' @description
-#' \code{regddmfit} is an S3 object sotring the fitted models of \pkg{RegDDM}.
+#' \code{regddmfit} is an S3 object storing the fitted models of \pkg{RegDDM}.
 #' It contains information used to fit the model and the resulting
 #' \code{\link[rstan]{stanfit}} and can be summarized and printed using
 #' \code{\link[=summary.regddmfit]{summary}} and \code{\link[=print.regddmfit]{print}}.
