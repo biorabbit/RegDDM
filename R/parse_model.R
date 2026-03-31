@@ -33,7 +33,10 @@ parse_model = function(model, data1, data2){
     }
   }
 
-  # check if primary outcome is numeric or factor
+  # check if primary outcome exists and is numeric
+  if(!is.na(primary_outcome) && !primary_outcome %in% colnames(data1)){
+    stop(stringr::str_interp("primary outcome '${primary_outcome}' is not found in data1"))
+  }
   if(!is.na(primary_outcome) && is.factor(data1[[primary_outcome]])){
     stop("primary outcome must be numeric")
   }

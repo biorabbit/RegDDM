@@ -46,7 +46,7 @@ format_data = function(
 
   # replace placeholder back to NA
   data1 = as.data.frame(sapply(data1, function(x) replace(x, x == placeholder, NA)))
-  data1 = data1[,2:ncol(data1)]
+  data1 = data1[, 2:ncol(data1), drop = FALSE]
 
   # put all data in the format required by rstan
   # names for all subject-level variables
@@ -77,7 +77,7 @@ format_data = function(
 
   # deal with trial-level data.
   data2 = as.data.frame(model.matrix(~., data2))
-  data2 = data2[,2:ncol(data2)]
+  data2 = data2[, 2:ncol(data2), drop = FALSE]
 
   # names for all trial-level variables
   x_names = c()

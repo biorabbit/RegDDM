@@ -131,7 +131,7 @@ generate_sim_data <- function(
     )
 
   data2_true =
-    tidyr::unnest(data2_true, "ddm")
+    tidyr::unnest(data2_true, cols = "ddm")
 
   data2_true =
     dplyr::mutate(

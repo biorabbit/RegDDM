@@ -252,19 +252,19 @@ generate_model = function(
   # priors.
   # priors for ddm group parameters, adopted from HDDM
   add_script("  // priors for ddm group parameters")
-  if(is.na(primary_outcome) || default_ddm_priors[["a"]] & "a_0" != primary_outcome){
-  add_script("  mu_a_0 ~ gamma(1.125, 0.75);")
-  add_script("  sigma_a_0 ~ normal(0, 0.1);")
+  if(is.na(primary_outcome) || (default_ddm_priors[["a"]] && "a_0" != primary_outcome)){
+    add_script("  mu_a_0 ~ gamma(1.125, 0.75);")
+    add_script("  sigma_a_0 ~ normal(0, 0.1);")
   }
-  if(is.na(primary_outcome) || default_ddm_priors[["t"]] & "t_0" != primary_outcome){
+  if(is.na(primary_outcome) || (default_ddm_priors[["t"]] && "t_0" != primary_outcome)){
     add_script("  mu_t_0 ~ gamma(0.08, 0.2);")
     add_script("  sigma_t_0 ~ normal(0, 1);")
   }
-  if(is.na(primary_outcome) || default_ddm_priors[["z"]] & "z_0" != primary_outcome){
+  if(is.na(primary_outcome) || (default_ddm_priors[["z"]] && "z_0" != primary_outcome)){
     add_script("  mu_z_0 ~ normal(0.5, 0.5);")
     add_script("  sigma_z_0 ~ normal(0, 0.05);")
   }
-  if(is.na(primary_outcome) || default_ddm_priors[["v"]] & "v_0" != primary_outcome){
+  if(is.na(primary_outcome) || (default_ddm_priors[["v"]] && "v_0" != primary_outcome)){
     add_script("  mu_v_0 ~ normal(2, 3);")
     add_script("  sigma_v_0  ~ normal(0, 2);")
   }

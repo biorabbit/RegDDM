@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-Build Regression models over Drift Diffusion Model parameters using MCMC! 
+Build regression models over Drift Diffusion Model parameters using MCMC.
 
 ## Installation
 
@@ -48,12 +48,12 @@ data(regddm_data)
 head(regddm_data$data1)
 ```
 
-`data2` is the subject-level dataset:
+`data2` is the trial-level dataset:
 ```{r}
 head(regddm_data$data2)
 ```
 
-Specify the model using a list. In this example, the drift rate `v` is influenced by `memload`, which is the memory load of the trial. The subject's `iq` is predicted by baseline drift rate `v_0` (drift rate when `memload` is 0), the influence of `memload` on drift rate `v_memload` and covariates `age` and `education`:
+Specify the model using a list. In this example, the drift rate `v` is influenced by `memload`, which is the memory load of the trial. The subject's `iq` is predicted by baseline drift rate `v_0` (the drift rate when `memload` is 0), the influence of `memload` on drift rate `v_memload`, and covariates `age` and `education`:
 
 ```{r}
 model = list(
@@ -62,7 +62,7 @@ model = list(
 )
 ```
 
-Use the main function of `RegDDM` to automatically generate the `RStan` model and summary the results. This could take ~20 minutes to run. The rows starting with 'beta_' are the posterior distributions of regression parameters:  
+Use the main function of `RegDDM` to automatically generate the `RStan` model and summarize the results. This could take about 20 minutes to run. The rows starting with `beta_` are the posterior distributions of regression parameters:
 
 ```{r}
 fit = regddm(
@@ -74,42 +74,44 @@ fit = regddm(
 print(fit)
 ```
 
-In this example, `iq` is negatively correlated with `v_memload`. The higher the influence of `memload` on drift rate, the lower the `iq` of the subject. 
+In this example, `iq` is negatively correlated with `v_memload`. The higher the influence of `memload` on drift rate, the lower the subject's `iq`.
 
 # Using your own data!
 If you want to fit the model on your own data, you need to specify `data1`, `data2` and `model`.
 
-`data1` is subject-level data table. It should contain the following:
+`data1` is a subject-level data table. It should contain the following:
 * `id`: unique indexing column for each subject. 
-* other subject-level variables that we want to include in the regression. Missing values are supported 
+* other subject-level variables that you want to include in the regression. Missing values are supported.
 
-`data2` is trial-level data table. It should contain the following:
+`data2` is a trial-level data table. It should contain the following:
 * `id`: the subject of each trial using the same index in `data1`. 
 * `rt`: response time of the trial in seconds.
-* `response``: response the trial. must be either 0 or 1. 
-* trial-level variables. These are the variables that differ by trial, such as difficulty of the task or different numbers on the screen. We assume that subjects' behavior changes according to these variables. These variables cannot contain missing values.
+* `response`: the response of the trial. It must be either 0 or 1.
+* trial-level variables. These are the variables that differ by trial, such as task difficulty or stimulus properties. We assume that subjects' behavior changes according to these variables. These variables cannot contain missing values.
 
-`model` is the proposed dependency between these parameters. Default is an empty list. It must be a list of 0 - 5 formulas. The outcome of these formulas can be either:
+`model` is the proposed dependency structure between variables. The default is an empty list. It must be a list of 0 to 5 formulas. The outcome of these formulas can be either:
 * one of the four DDM parameters `a`, `t`, `z`, `v`, modeling the relationship between DDM parameters and trial-level variables. 
 * one formula for GLM regression, modeling the relationship between estimated DDM parameters and other subject-level variables.
 
 `family` is the family of distribution of GLM. It can be either `"gaussian"`, `"bernoulli"` or `"poisson"`. Default is `"gaussian"`. 
 
-`init` is how we initialize the MCMC algorithm. The `"default"` initialization should work in most conditions
+`init` controls how the MCMC algorithm is initialized. The `"default"` initialization should work in most conditions.
 
-`prior` determines whether to use the default prior for DDM parameters or not. Default is `TRUE`
+`prior` determines whether to use the default priors for DDM parameters. The default is `TRUE`.
 
-`stan_filename` is the file location for the automatically generated stan model. If an empty string '' is provided, a temporary file will be created and deleted after the model is fit. Default is `"stan_model.stan"`
+`stan_filename` is the file location for the automatically generated Stan model. If an empty string `""` is provided, a temporary file will be created and deleted after the model is fit. The default is `""`.
 
 `gen_model` determines whether to generate the model or not. Default is `TRUE`.
 
 `fit_model` determines whether to fit the model or not. Default is `TRUE`.
 
-`...`: additional parameters used by `rstan`, including `warmup`,`iter`,`chains`,`cores` etc. 
+`warmup`, `iter`, `chains`, and `cores` control sampling and can also be passed directly to `regddm()`.
+
+`...`: additional parameters passed to `rstan`.
 
 
 # Citation
-to be added
+To be added.
 
 
 
