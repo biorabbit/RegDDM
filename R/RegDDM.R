@@ -132,7 +132,7 @@ regddm = function(
   # see if the automatically generated file should be deleted
   delete_flag = FALSE
   if(stan_filename == ""){
-    stan_filename = stringr::str_c(tempdir(), "\\", sample.int(999999, size = 1),"_stan_model_tmp.stan")
+    stan_filename = file.path(tempdir(), stringr::str_c(sample.int(999999, size = 1), "_stan_model_tmp.stan"))
     delete_flag = TRUE
   }
 

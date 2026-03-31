@@ -36,7 +36,7 @@ regddmfit <- function(data1,data2,model,family,stan_fit){
 #' @param object A \code{\link{regddmfit}} object to summary
 #' @param ... parameters passed to \code{\link[rstan]{summary,stanfit-method}}
 #'
-#' @return The summary method returns a named list of \code{glm_coefficiets},
+#' @return The summary method returns a named list of \code{glm_coefficients},
 #'    \code{subject_ddm_param}, \code{group_param}, and \code{missing_value}.
 #'    Each element is a \code{\link[tibble]{tibble}} data frame of posterior
 #'    summary statistics of the regression coefficient, DDM parameter of each
@@ -102,7 +102,7 @@ print.regddmfit = function(x, digits = 3, ...){
 
   output = paste0(output, "Regression coefficients:\n")
   glm_coefficients = dplyr::select(
-    tmp_summary$glm_coefficiets,
+    tmp_summary$glm_coefficients,
     "variable", "mean", "sd", "2.5%", "97.5%", "n_eff", "Rhat"
   )
   glm_coefficients = as.data.frame(glm_coefficients)

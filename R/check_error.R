@@ -54,7 +54,7 @@ check_data = function(
   if(min(data2$rt) < 0.1){
     warning("Some trials has response time(rt) less than 0.1s. Did your subjects make proper decision?\n")
   }
-  if(min(data2$rt) > 10){
+  if(max(data2$rt) > 10){
     warning("Some trials has response time(rt) greater than 10s. Check if the unit of reaction time is in seconds.\n")
   }
 

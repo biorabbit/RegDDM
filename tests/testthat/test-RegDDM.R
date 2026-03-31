@@ -84,7 +84,7 @@ test_that("simulated data generation works", {
     generate_sim_data()
   )
   expect_no_error(
-    generate_sim_data(y_family = "bernoulli", n = 50, n_each = 50)
+    generate_sim_data(y_family = "bernoulli", N = 50, n_each = 50)
   )
   expect_no_error(
     generate_sim_data(y_family = "poisson", n_xvar = 0, beta_v_0 = 1, sigma_v = 0.3)

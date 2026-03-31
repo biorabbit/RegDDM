@@ -31,7 +31,7 @@ summary_results = function(stan_fit,data1, ...){
   }
 
   # for regression coefficients
-  glm_coefficiets =
+  glm_coefficients =
     dplyr::filter(res, stringr::str_detect(.data$variable, "^beta_") | stringr::str_detect(.data$variable, "^sigma$"))
 
   # for subject-level ddm parameters
@@ -56,7 +56,7 @@ summary_results = function(stan_fit,data1, ...){
 
   return(
     list(
-      glm_coefficiets = glm_coefficiets, # GLM regression parameters
+      glm_coefficients = glm_coefficients, # GLM regression parameters
       subject_ddm_param = subject_ddm_param, # ddm parameters of each subject
       group_param = group_param, # group mean and SD of DDM parameters
       missing_value = missing_value, # estimated missing covariates
